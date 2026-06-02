@@ -1,5 +1,6 @@
 package com.example.sae3021;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
@@ -34,14 +35,26 @@ public class CreateGroupActivity extends AppCompatActivity {
                 return;
             }
             new Thread(() -> {
+                DataHandler handler = null;
                 try {
-                    DataHandler handler = new DataHandler();
+                    handler = new DataHandler();
                     // G_add,Src_User,G_Name
                     String response = handler.sendAndReceive("G_add," + username + "," + groupName);
-                    handler.close();
-                    runOnUiThread(() -> Toast.makeText(this, response, Toast.LENGTH_SHORT).show());
+                    
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
+                        if (response.startsWith("201")) {
+                            // Redirection vers l'étape 2 : ajout de membres
+                            Intent intent = new Intent(this, ManageGroupActivity.class);
+                            intent.putExtra("groupName", groupName);
+                            startActivity(intent);
+                            finish(); // Fermer l'étape 1
+                        }
+                    });
                 } catch (IOException e) {
                     runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+                } finally {
+                    if (handler != null) handler.close();
                 }
             }).start();
         });

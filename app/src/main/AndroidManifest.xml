@@ -25,6 +25,7 @@
         <activity android:name=".AddFriendActivity" />
         <activity android:name=".FriendRequestsActivity" />
         <activity android:name=".CreateGroupActivity" />
+        <activity android:name=".ManageGroupActivity" />
         <activity android:name=".SettingsActivity" />
 
     </application>

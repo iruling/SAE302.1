@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         ));
         nameBtn.setOnClickListener(v -> {
             if (isFriend) openChat(name);
-            else openGroupChat(name);
+            else openManageGroup(name);
         });
 
         item.addView(icon);
@@ -240,6 +240,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void openChat(String name) {
         Toast.makeText(this, "Chat avec " + name, Toast.LENGTH_SHORT).show();
+    }
+
+    private void openManageGroup(String name) {
+        Intent intent = new Intent(this, ManageGroupActivity.class);
+        intent.putExtra("groupName", name);
+        startActivity(intent);
     }
 
     private void openGroupChat(String name) {
