@@ -38,6 +38,14 @@
             android:text="Sign Up" />
     </LinearLayout>
     
+    <Button
+        android:id="@+id/debugBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🐛 DEBUG: Aller à MainActivity"
+        android:textColor="#FF0000"
+        android:backgroundTint="#FFFF00" />
+    
     <TextView
         android:id="@+id/debugText"
         android:layout_width="match_parent"

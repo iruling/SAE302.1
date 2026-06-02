@@ -11,7 +11,7 @@ public class DataHandler {
     private InetAddress serverAddr;
     private int serverPort;
     private static final int BUFFER_SIZE = 1024;
-    private static final String SERVER_IP = "172.20.10.2"; // IP fixe du serveur
+    private static final String SERVER_IP = "192.168.27.66"; // IP fixe du serveur
     private static final int SERVER_PORT = 6010;
 
     public DataHandler() throws IOException {
