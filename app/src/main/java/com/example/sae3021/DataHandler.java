@@ -45,6 +45,11 @@ public class DataHandler {
         return message;
     }
 
+    public String sendAndReceive(String message) throws IOException {
+        sendMessage(message);
+        return receiveMessage();
+    }
+
     /**
      * Parse un message reçu
      */

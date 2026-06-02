@@ -1,41 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-    
-    <!-- Header avec icones -->
+    android:paddingBottom="12dp">
+
     <LinearLayout
+        android:id="@+id/headerBar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="#D4A574"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="8dp">
-        
+
         <ImageButton
+            android:id="@+id/addFriendBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_dialog_info"
+            android:src="@android:drawable/ic_input_add"
             android:background="?attr/selectableItemBackground" />
-        
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
-        
-        <ImageButton
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_my_calendar"
-            android:background="?attr/selectableItemBackground" />
+
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp">
+
+            <ImageButton
+                android:id="@+id/friendRequestsBtn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:background="?attr/selectableItemBackground"
+                android:src="@android:drawable/ic_dialog_email" />
+
+            <TextView
+                android:id="@+id/requestsBadge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:background="@android:drawable/btn_default_small"
+                android:gravity="center"
+                android:padding="1dp"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
-    
-    <!-- Liste des amis -->
+
     <ScrollView
+        android:id="@+id/friendsScroll"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        
+        android:layout_height="match_parent"
+        android:layout_above="@id/createGroupBtn"
+        android:layout_below="@id/headerBar">
+
         <LinearLayout
             android:id="@+id/friendsList"
             android:layout_width="match_parent"
@@ -43,20 +66,15 @@
             android:orientation="vertical"
             android:padding="8dp" />
     </ScrollView>
-    
-    <!-- Bouton ajouter ami -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="#D4A574"
-        android:gravity="center">
-        
-        <ImageButton
-            android:id="@+id/addFriendBtn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@android:drawable/ic_input_add"
-            android:background="@android:drawable/btn_dialog"
-            android:scaleType="centerInside" />
-    </LinearLayout>
-</LinearLayout>
+
+    <ImageButton
+        android:id="@+id/createGroupBtn"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:background="@android:drawable/btn_default"
+        android:contentDescription="Créer un groupe"
+        android:src="@android:drawable/ic_input_add" />
+</RelativeLayout>
