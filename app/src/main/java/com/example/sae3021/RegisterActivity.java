@@ -1,4 +1,5 @@
 package com.example.sae3021;
+
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,7 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         debugText.append("📥 Reçu: " + response + "\n");
                         Toast.makeText(RegisterActivity.this, response, Toast.LENGTH_SHORT).show();
-                        finish(); // Revenir à LoginActivity
+                        finish();
                     });
                 } catch (IOException e) {
                     e.printStackTrace();
