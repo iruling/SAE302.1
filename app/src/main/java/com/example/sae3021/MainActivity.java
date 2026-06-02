@@ -30,6 +30,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private final Runnable refreshDataTask = new Runnable() {
+        @Override
+        public void run() {
+            loadFriends();
+            loadGroups();
+            refreshHandler.postDelayed(this, 30000); // Rafraîchir amis/groupes toutes les 30s
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,18 +83,29 @@ public class MainActivity extends AppCompatActivity {
         } else {
             loadGroups();
         }
+
+        // Nettoyer le cache initial pour forcer les prochains rafraîchissements depuis le serveur
+        prefs.edit().remove("initial_friends").remove("initial_groups").apply();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         refreshHandler.post(refreshRequestsTask);
+        
+        // Rafraîchissement immédiat au retour sur l'activité
+        loadFriends();
+        loadGroups();
+        
+        // Planifier les suivants
+        refreshHandler.postDelayed(refreshDataTask, 30000);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         refreshHandler.removeCallbacks(refreshRequestsTask);
+        refreshHandler.removeCallbacks(refreshDataTask);
     }
 
     private void logout() {
@@ -179,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         ));
         nameBtn.setOnClickListener(v -> {
             if (isFriend) openChat(name);
-            else openManageGroup(name);
+            else openGroupChat(name);
         });
 
         item.addView(icon);
@@ -261,7 +281,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openChat(String name) {
-        Toast.makeText(this, "Chat avec " + name, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("contactName", name);
+        startActivity(intent);
     }
 
     private void openManageGroup(String name) {
@@ -271,6 +293,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openGroupChat(String name) {
-        Toast.makeText(this, "Groupe: " + name, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, GroupChatActivity.class);
+        intent.putExtra("groupName", name);
+        startActivity(intent);
     }
 }

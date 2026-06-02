@@ -33,6 +33,11 @@ public class CreateActivity extends AppCompatActivity {
                 return;
             }
 
+            if (user.contains(",") || user.contains(";") || pass.contains(",") || pass.contains(";")) {
+                Toast.makeText(CreateActivity.this, "Caractères , ou ; interdits", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();

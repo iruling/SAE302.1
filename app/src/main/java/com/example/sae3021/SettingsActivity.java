@@ -32,17 +32,21 @@ public class SettingsActivity extends AppCompatActivity {
                 Toast.makeText(this, "Veuillez entrer votre mot de passe", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (password.contains(",") || password.contains(";")) {
+                Toast.makeText(this, "Caractères , ou ; interdits", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             new Thread(() -> {
+                DataHandler handler = null;
                 try {
-                    DataHandler handler = new DataHandler();
+                    handler = new DataHandler();
                     String message = "Delete," + username + "," + password;
                     String response = handler.sendAndReceive(message);
-                    handler.close();
-
+                    
                     runOnUiThread(() -> {
                         if (response.startsWith("200")) {
-                            Toast.makeText(this, "Compte supprimé", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                             prefs.edit().clear().apply();
                             Intent intent = new Intent(this, LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -54,6 +58,8 @@ public class SettingsActivity extends AppCompatActivity {
                     });
                 } catch (IOException e) {
                     runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+                } finally {
+                    if (handler != null) handler.close();
                 }
             }).start();
         });
@@ -68,17 +74,19 @@ public class SettingsActivity extends AppCompatActivity {
             if (cmd.isEmpty()) return;
 
             new Thread(() -> {
+                DataHandler handler = null;
                 try {
-                    DataHandler handler = new DataHandler();
+                    handler = new DataHandler();
                     
                     runOnUiThread(() -> debugConsole.append("📤 CMD: " + cmd + "\n"));
                     
                     String response = handler.sendAndReceive(cmd);
-                    handler.close();
                     
                     runOnUiThread(() -> debugConsole.append("📥 REP: " + response + "\n"));
                 } catch (IOException e) {
                     runOnUiThread(() -> debugConsole.append("❌ ERR: " + e.getMessage() + "\n"));
+                } finally {
+                    if (handler != null) handler.close();
                 }
             }).start();
         });

@@ -41,6 +41,10 @@ public class ManageGroupActivity extends AppCompatActivity {
                 Toast.makeText(this, "Entrez un utilisateur", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (targetMember.contains(",") || targetMember.contains(";")) {
+                Toast.makeText(this, "Caractères , ou ; interdits", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (groupName == null || groupName.isEmpty()) {
                 Toast.makeText(this, "Erreur : Nom de groupe inconnu", Toast.LENGTH_SHORT).show();
                 return;

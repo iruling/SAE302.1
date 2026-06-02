@@ -32,6 +32,10 @@ public class AddFriendActivity extends AppCompatActivity {
                 Toast.makeText(this, "Entrez un utilisateur", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (targetUsername.contains(",") || targetUsername.contains(";")) {
+                Toast.makeText(this, "Caractères , ou ; interdits", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (username.isEmpty()) {
                 Toast.makeText(this, "Session invalide", Toast.LENGTH_SHORT).show();
                 return;
