@@ -33,6 +33,7 @@ public class ManageGroupActivity extends AppCompatActivity {
 
         EditText memberUsernameInput = findViewById(R.id.memberUsernameInput);
         Button addMemberBtn = findViewById(R.id.addMemberBtn);
+        Button finishBtn = findViewById(R.id.finishBtn);
         debugConsole = findViewById(R.id.debugConsole);
 
         addMemberBtn.setOnClickListener(v -> {
@@ -52,6 +53,8 @@ public class ManageGroupActivity extends AppCompatActivity {
 
             addMember(targetMember);
         });
+
+        finishBtn.setOnClickListener(v -> finish());
     }
 
     private void addMember(String targetMember) {
@@ -59,8 +62,8 @@ public class ManageGroupActivity extends AppCompatActivity {
             DataHandler handler = null;
             try {
                 handler = new DataHandler();
-                // G_Add_M,Src_User,G_Name,User
-                String cmd = "G_Add_M," + username + "," + groupName + "," + targetMember;
+                // G_add_M,Src_User,G_Name,User
+                String cmd = "G_add_M," + username + "," + groupName + "," + targetMember;
                 
                 runOnUiThread(() -> debugConsole.append("📤 CMD: " + cmd + "\n"));
                 

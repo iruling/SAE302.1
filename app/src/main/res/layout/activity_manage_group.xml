@@ -34,6 +34,15 @@
         android:layout_height="wrap_content"
         android:text="Ajouter au groupe" />
 
+    <Button
+        android:id="@+id/finishBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Terminer"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#4CAF50"
+        android:textColor="@android:color/white" />
+
     <TextView
         android:id="@+id/debugConsole"
         android:layout_width="match_parent"
