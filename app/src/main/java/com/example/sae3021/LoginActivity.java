@@ -24,10 +24,12 @@ public class LoginActivity extends AppCompatActivity {
         Button signupBtn = findViewById(R.id.signupBtn);
         debugText = findViewById(R.id.debugText);
         Button debugBtn = findViewById(R.id.debugBtn);
+
         debugBtn.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
         });
+
         loginBtn.setOnClickListener(v -> {
             String user = username.getText().toString();
             String pass = password.getText().toString();
