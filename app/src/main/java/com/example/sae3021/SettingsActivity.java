@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +22,7 @@ public class SettingsActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String username = prefs.getString("username", "");
 
+        // --- Section Suppression de compte ---
         EditText passwordConfirm = findViewById(R.id.passwordConfirm);
         Button deleteAccountBtn = findViewById(R.id.deleteAccountBtn);
 
@@ -34,7 +36,6 @@ public class SettingsActivity extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-                    // Commande du README: Delete,User,password
                     String message = "Delete," + username + "," + password;
                     String response = handler.sendAndReceive(message);
                     handler.close();
@@ -42,7 +43,6 @@ public class SettingsActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         if (response.startsWith("200")) {
                             Toast.makeText(this, "Compte supprimé", Toast.LENGTH_SHORT).show();
-                            // Nettoyer la session et quitter
                             prefs.edit().clear().apply();
                             Intent intent = new Intent(this, LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -54,6 +54,31 @@ public class SettingsActivity extends AppCompatActivity {
                     });
                 } catch (IOException e) {
                     runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+                }
+            }).start();
+        });
+
+        // --- Section Console Debug (Manuel) ---
+        EditText customCommandInput = findViewById(R.id.customCommandInput);
+        Button sendCustomCmdBtn = findViewById(R.id.sendCustomCmdBtn);
+        TextView debugConsole = findViewById(R.id.debugConsole);
+
+        sendCustomCmdBtn.setOnClickListener(v -> {
+            String cmd = customCommandInput.getText().toString().trim();
+            if (cmd.isEmpty()) return;
+
+            new Thread(() -> {
+                try {
+                    DataHandler handler = new DataHandler();
+                    
+                    runOnUiThread(() -> debugConsole.append("📤 CMD: " + cmd + "\n"));
+                    
+                    String response = handler.sendAndReceive(cmd);
+                    handler.close();
+                    
+                    runOnUiThread(() -> debugConsole.append("📥 REP: " + response + "\n"));
+                } catch (IOException e) {
+                    runOnUiThread(() -> debugConsole.append("❌ ERR: " + e.getMessage() + "\n"));
                 }
             }).start();
         });

@@ -13,6 +13,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="24dp" />
 
+    <!-- Section Suppression de compte -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,21 +22,14 @@
         android:textColor="#FF0000"
         android:layout_marginBottom="8dp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Cette action est irréversible. Entrez votre mot de passe pour confirmer."
-        android:textSize="14sp"
-        android:layout_marginBottom="16dp" />
-
     <EditText
         android:id="@+id/passwordConfirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Mot de passe"
+        android:hint="Confirmer mot de passe"
         android:inputType="textPassword"
         android:autofillHints="password"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="8dp" />
 
     <Button
         android:id="@+id/deleteAccountBtn"
@@ -44,5 +38,57 @@
         android:text="Supprimer définitivement"
         android:backgroundTint="#FF0000"
         android:textColor="#FFFFFF" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginVertical="16dp" />
+
+    <!-- Section Console Debug -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Console Debug (Manuel)"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/customCommandInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Commande CSV (ex: aaa)"
+            android:inputType="text"
+            android:autofillHints="none" />
+
+        <Button
+            android:id="@+id/sendCustomCmdBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Envoyer" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:background="#F0F0F0"
+        android:padding="4dp">
+
+        <TextView
+            android:id="@+id/debugConsole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:text="Logs de console...\n" />
+    </ScrollView>
 
 </LinearLayout>

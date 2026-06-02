@@ -41,17 +41,30 @@ public class FriendRequestsActivity extends AppCompatActivity {
             return;
         }
         new Thread(() -> {
+            DataHandler handler = null;
             try {
-                DataHandler handler = new DataHandler();
+                handler = new DataHandler();
                 // Utiliser Update pour récupérer les demandes en attente selon le README
                 String message = "Update," + username;
                 
                 runOnUiThread(() -> debugText.append("📤 Envoyé: " + message + "\n"));
                 
                 String response = handler.sendAndReceive(message);
-                handler.close();
                 
-                runOnUiThread(() -> debugText.append("📥 Reçu: " + response + "\n"));
+                runOnUiThread(() -> {
+                    debugText.append("📥 Reçu: " + response + "\n");
+                    
+                    // Analyse du code de retour selon le README
+                    String[] parts = response.split(",");
+                    if (parts.length > 0) {
+                        String code = parts[0];
+                        if (response.contains("NO_DATA")) {
+                            debugText.append("ℹ️ Aucune donnée disponible\n");
+                        } else if (!code.equals("200")) {
+                            debugText.append("⚠️ Code d'erreur reçu: " + code + "\n");
+                        }
+                    }
+                });
                 
                 List<String> requests = parseRequestsFromUpdate(response);
                 runOnUiThread(() -> displayRequests(requests));
@@ -60,6 +73,8 @@ public class FriendRequestsActivity extends AppCompatActivity {
                     debugText.append("❌ Erreur: " + e.getMessage() + "\n");
                     Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
                 });
+            } finally {
+                if (handler != null) handler.close();
             }
         }).start();
     }
@@ -124,12 +139,12 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
         Button acceptBtn = new Button(this);
         acceptBtn.setText("Accepter");
-        // F_Acc,Src_User,Dst_User,1 (1 = accepter)
+        // F_acc,Src_User,Dst_User,1 (1 = accepter)
         acceptBtn.setOnClickListener(v -> respondToRequest(requestUsername, 1));
 
         Button refuseBtn = new Button(this);
         refuseBtn.setText("Refuser");
-        // F_Acc,Src_User,Dst_User,0 (0 = refuser)
+        // F_acc,Src_User,Dst_User,0 (0 = refuser)
         refuseBtn.setOnClickListener(v -> respondToRequest(requestUsername, 0));
 
         item.addView(usernameText);
@@ -141,18 +156,25 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
     private void respondToRequest(String friendUsername, int status) {
         new Thread(() -> {
+            DataHandler handler = null;
             try {
-                DataHandler handler = new DataHandler();
-                // F_Acc,Src_User,Dst_User,0or1
-                String message = "F_Acc," + username + "," + friendUsername + "," + status;
+                handler = new DataHandler();
+                // F_acc,Src_User,Dst_User,0or1
+                String message = "F_acc," + username + "," + friendUsername + "," + status;
                 
                 runOnUiThread(() -> debugText.append("📤 Envoyé: " + message + "\n"));
                 
                 String response = handler.sendAndReceive(message);
-                handler.close();
                 
                 runOnUiThread(() -> {
                     debugText.append("📥 Reçu: " + response + "\n");
+                    
+                    // Vérification sommaire du code de retour
+                    String[] parts = response.split(",");
+                    if (parts.length > 0 && !parts[0].equals("200")) {
+                        debugText.append("⚠️ Erreur lors du traitement (Code " + parts[0] + ")\n");
+                    }
+                    
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                     loadRequests();
                 });
@@ -161,6 +183,8 @@ public class FriendRequestsActivity extends AppCompatActivity {
                     debugText.append("❌ Erreur: " + e.getMessage() + "\n");
                     Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
                 });
+            } finally {
+                if (handler != null) handler.close();
             }
         }).start();
     }
