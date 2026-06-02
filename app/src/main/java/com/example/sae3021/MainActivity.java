@@ -1,5 +1,6 @@
 package com.example.sae3021;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.Button;
@@ -106,4 +107,8 @@ public class MainActivity extends AppCompatActivity {
     private String getCurrentUserId() {
         return getSharedPreferences("session", MODE_PRIVATE).getString("userId", "");
     }
+    SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+    String token = prefs.getString("token", "");
+    String username = prefs.getString("username", "");
+
 }

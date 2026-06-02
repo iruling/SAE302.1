@@ -36,7 +36,7 @@ public class RegisterActivity extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-                    String message = "register," + user + "," + pass;
+                    String message = "Create," + user + "," + pass;
 
                     runOnUiThread(() -> {
                         debugText.append("📤 Envoyé: " + message + "\n");
