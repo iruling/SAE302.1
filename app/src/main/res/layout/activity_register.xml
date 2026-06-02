@@ -18,25 +18,18 @@
         android:hint="Password"
         android:inputType="textPassword" />
     
-    <LinearLayout
+    <EditText
+        android:id="@+id/confirmPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        
-        <Button
-            android:id="@+id/loginBtn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Login" />
-        
-        <Button
-            android:id="@+id/signupBtn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Sign Up" />
-    </LinearLayout>
+        android:hint="Confirm Password"
+        android:inputType="textPassword" />
+    
+    <Button
+        android:id="@+id/registerBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Register" />
     
     <TextView
         android:id="@+id/debugText"
