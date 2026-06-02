@@ -19,7 +19,6 @@ public class AddFriendActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String username = prefs.getString("username", "");
-        String token = prefs.getString("token", "");
 
         EditText targetUsernameInput = findViewById(R.id.targetUsernameInput);
         Button sendRequestBtn = findViewById(R.id.sendRequestBtn);
@@ -30,14 +29,15 @@ public class AddFriendActivity extends AppCompatActivity {
                 Toast.makeText(this, "Entrez un utilisateur", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (username.isEmpty() || token.isEmpty()) {
+            if (username.isEmpty()) {
                 Toast.makeText(this, "Session invalide", Toast.LENGTH_SHORT).show();
                 return;
             }
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-                    String response = handler.sendAndReceive("addFriend," + username + "," + targetUsername + "," + token);
+                    // F_add,Src_User,Dst_User
+                    String response = handler.sendAndReceive("F_add," + username + "," + targetUsername);
                     handler.close();
                     runOnUiThread(() -> Toast.makeText(this, response, Toast.LENGTH_SHORT).show());
                 } catch (IOException e) {

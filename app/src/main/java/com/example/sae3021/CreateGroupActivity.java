@@ -19,7 +19,6 @@ public class CreateGroupActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String username = prefs.getString("username", "");
-        String token = prefs.getString("token", "");
 
         EditText groupNameInput = findViewById(R.id.groupNameInput);
         Button createGroupBtn = findViewById(R.id.createGroupBtn);
@@ -30,14 +29,15 @@ public class CreateGroupActivity extends AppCompatActivity {
                 Toast.makeText(this, "Entrez un nom de groupe", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (username.isEmpty() || token.isEmpty()) {
+            if (username.isEmpty()) {
                 Toast.makeText(this, "Session invalide", Toast.LENGTH_SHORT).show();
                 return;
             }
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-                    String response = handler.sendAndReceive("createGroup," + username + "," + groupName + "," + token);
+                    // G_add,Src_User,G_Name
+                    String response = handler.sendAndReceive("G_add," + username + "," + groupName);
                     handler.close();
                     runOnUiThread(() -> Toast.makeText(this, response, Toast.LENGTH_SHORT).show());
                 } catch (IOException e) {

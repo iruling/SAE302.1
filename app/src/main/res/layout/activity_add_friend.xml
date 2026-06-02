@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ajouter un ami"
+        android:textSize="20sp"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/targetUsernameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nom d'utilisateur de l'ami"
+        android:inputType="text"
+        android:autofillHints="username"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/sendRequestBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Envoyer la demande" />
+
+</LinearLayout>

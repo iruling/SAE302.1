@@ -17,7 +17,6 @@ import java.util.List;
 public class FriendRequestsActivity extends AppCompatActivity {
     private LinearLayout requestsList;
     private String username;
-    private String token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +25,6 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         username = prefs.getString("username", "");
-        token = prefs.getString("token", "");
 
         requestsList = findViewById(R.id.requestsList);
         Button refreshRequestsBtn = findViewById(R.id.refreshRequestsBtn);
@@ -36,16 +34,17 @@ public class FriendRequestsActivity extends AppCompatActivity {
     }
 
     private void loadRequests() {
-        if (username.isEmpty() || token.isEmpty()) {
+        if (username.isEmpty()) {
             Toast.makeText(this, "Session invalide", Toast.LENGTH_SHORT).show();
             return;
         }
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                String response = handler.sendAndReceive("getFriendsRequests," + username + "," + token);
+                // Utiliser Update pour récupérer les demandes en attente selon le README
+                String response = handler.sendAndReceive("Update," + username);
                 handler.close();
-                List<String> requests = parseRequests(response);
+                List<String> requests = parseRequestsFromUpdate(response);
                 runOnUiThread(() -> displayRequests(requests));
             } catch (IOException e) {
                 runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
@@ -53,23 +52,29 @@ public class FriendRequestsActivity extends AppCompatActivity {
         }).start();
     }
 
-    private List<String> parseRequests(String response) {
+    private List<String> parseRequestsFromUpdate(String response) {
         List<String> requests = new ArrayList<>();
-        if (response == null || response.trim().isEmpty()) {
+        if (response == null || !response.contains("FRIEND_REQUEST=")) {
             return requests;
         }
-        String trimmed = response.trim();
-        if (trimmed.matches("\\d+")) {
-            return requests;
-        }
-        String[] values = trimmed.split(",");
-        for (String value : values) {
-            String friendUsername = value.trim();
-            if (!friendUsername.isEmpty() && !friendUsername.matches("\\d+")
-                    && !"OK".equalsIgnoreCase(friendUsername)
-                    && !"200".equals(friendUsername)) {
-                requests.add(friendUsername);
+
+        try {
+            // Extraire la partie FRIEND_REQUEST=...
+            int start = response.indexOf("FRIEND_REQUEST=") + "FRIEND_REQUEST=".length();
+            int end = response.indexOf(";", start);
+            if (end == -1) end = response.length();
+
+            String list = response.substring(start, end);
+            if (!list.isEmpty()) {
+                String[] users = list.split(",");
+                for (String u : users) {
+                    if (!u.trim().isEmpty()) {
+                        requests.add(u.trim());
+                    }
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return requests;
     }
@@ -107,11 +112,13 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
         Button acceptBtn = new Button(this);
         acceptBtn.setText("Accepter");
-        acceptBtn.setOnClickListener(v -> respondToRequest("acceptFriend", requestUsername));
+        // F_Acc,Src_User,Dst_User,1 (1 = accepter)
+        acceptBtn.setOnClickListener(v -> respondToRequest(requestUsername, 1));
 
         Button refuseBtn = new Button(this);
         refuseBtn.setText("Refuser");
-        refuseBtn.setOnClickListener(v -> respondToRequest("refuseFriend", requestUsername));
+        // F_Acc,Src_User,Dst_User,0 (0 = refuser)
+        refuseBtn.setOnClickListener(v -> respondToRequest(requestUsername, 0));
 
         item.addView(usernameText);
         item.addView(acceptBtn);
@@ -120,11 +127,12 @@ public class FriendRequestsActivity extends AppCompatActivity {
         return item;
     }
 
-    private void respondToRequest(String action, String friendUsername) {
+    private void respondToRequest(String friendUsername, int status) {
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                String response = handler.sendAndReceive(action + "," + username + "," + friendUsername + "," + token);
+                // F_Acc,Src_User,Dst_User,0or1
+                String response = handler.sendAndReceive("F_Acc," + username + "," + friendUsername + "," + status);
                 handler.close();
                 runOnUiThread(() -> {
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();

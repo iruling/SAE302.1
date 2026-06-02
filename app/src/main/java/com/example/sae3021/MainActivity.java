@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout friendsList;
     private TextView requestsBadge;
     private String username;
-    private String token;
     private final Handler refreshHandler = new Handler(Looper.getMainLooper());
     private final Runnable refreshRequestsTask = new Runnable() {
         @Override
@@ -35,9 +34,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Récupérer le token et l'username de SharedPreferences
+        // Récupérer l'username de SharedPreferences
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
-        token = prefs.getString("token", "");
         username = prefs.getString("username", "");
 
         friendsList = findViewById(R.id.friendsList);
@@ -69,7 +67,9 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                String message = "getFriends," + username + "," + token;
+                // README suggère que Connect renvoie la liste,
+                // mais si on a besoin de rafraîchir, on peut supposer une commande de type getFriends
+                String message = "getFriends," + username;
                 String response = handler.sendAndReceive(message);
                 handler.close();
 
@@ -91,15 +91,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFriendRequestsCount() {
-        if (username == null || username.isEmpty() || token == null || token.isEmpty()) {
+        if (username == null || username.isEmpty()) {
             return;
         }
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                String response = handler.sendAndReceive("getFriendsRequests," + username + "," + token);
+                // Utiliser la commande Update du README
+                String response = handler.sendAndReceive("Update," + username);
                 handler.close();
-                int count = parseRequestCount(response);
+
+                // Parser la réponse Code,Type,Message
+                // Exemple: 200,UPDATE,DATA;MSG=...;FRIEND_REQUEST=...
+                int count = parseUpdateResponse(response);
                 runOnUiThread(() -> updateRequestsBadge(count));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -107,15 +111,28 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private int parseRequestCount(String response) {
-        if (response == null || response.trim().isEmpty()) {
+    private int parseUpdateResponse(String response) {
+        if (response == null || !response.startsWith("200,UPDATE,DATA")) {
             return 0;
         }
-        String trimmed = response.trim();
-        if (trimmed.matches("\\d+")) {
-            return Integer.parseInt(trimmed);
+
+        int count = 0;
+        try {
+            // Extraire la partie DATA
+            String dataPart = response.substring(response.indexOf("DATA;") + 5);
+            String[] segments = dataPart.split(";");
+            for (String segment : segments) {
+                if (segment.startsWith("FRIEND_REQUEST=")) {
+                    String list = segment.substring("FRIEND_REQUEST=".length());
+                    if (!list.isEmpty()) {
+                        count = list.split(",").length;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return parseUserList(trimmed).size();
+        return count;
     }
 
     private List<String> parseUserList(String response) {
