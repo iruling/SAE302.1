@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.IOException;
 
-public class RegisterActivity extends AppCompatActivity {
+public class CreateActivity extends AppCompatActivity {
     private TextView debugText;
 
     @Override
@@ -29,7 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
             String confirmPass = confirmPassword.getText().toString();
 
             if (!pass.equals(confirmPass)) {
-                Toast.makeText(RegisterActivity.this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateActivity.this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -48,7 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         debugText.append("📥 Reçu: " + response + "\n");
-                        Toast.makeText(RegisterActivity.this, response, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateActivity.this, response, Toast.LENGTH_SHORT).show();
                         finish();
                     });
                 } catch (IOException e) {
