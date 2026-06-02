@@ -51,11 +51,14 @@ public class LoginActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         debugText.append("📥 Reçu: " + response + "\n");
 
-                        // Vérifier si la réponse est 200,OK,token
-                        if (response.startsWith("200,OK")) {
-                            // Extraire le token
-                            String[] parts = response.split(",");
-                            String token = parts.length > 2 ? parts[2] : "";
+                        // Vérifier si la réponse est 200,CONNECT,OK
+                        if (response.startsWith("200,CONNECT,OK") || response.startsWith("200,OK")) {
+                            // Extraire le token (format: 200,CONNECT,OK;token...)
+                            String token = "";
+                            if (response.contains(";")) {
+                                String afterOk = response.substring(response.indexOf("OK;") + 3);
+                                token = afterOk.split(";")[0];
+                            }
 
                             // Sauvegarder le token et l'username
                             SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);

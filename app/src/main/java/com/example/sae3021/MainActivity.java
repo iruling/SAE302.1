@@ -18,6 +18,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private LinearLayout friendsList;
+    private LinearLayout groupsList;
     private TextView requestsBadge;
     private String username;
     private final Handler refreshHandler = new Handler(Looper.getMainLooper());
@@ -34,21 +35,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Récupérer l'username de SharedPreferences
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         username = prefs.getString("username", "");
 
+        if (username.isEmpty()) {
+            goToLogin();
+            return;
+        }
+
         friendsList = findViewById(R.id.friendsList);
+        groupsList = findViewById(R.id.groupsList);
         requestsBadge = findViewById(R.id.requestsBadge);
+        
+        ImageButton logoutBtn = findViewById(R.id.logoutBtn);
         ImageButton addFriendBtn = findViewById(R.id.addFriendBtn);
         ImageButton friendRequestsBtn = findViewById(R.id.friendRequestsBtn);
+        ImageButton settingsBtn = findViewById(R.id.settingsBtn);
         ImageButton createGroupBtn = findViewById(R.id.createGroupBtn);
 
+        logoutBtn.setOnClickListener(v -> logout());
         addFriendBtn.setOnClickListener(v -> addFriend());
         friendRequestsBtn.setOnClickListener(v -> openFriendRequests());
+        settingsBtn.setOnClickListener(v -> openSettings());
         createGroupBtn.setOnClickListener(v -> openCreateGroup());
 
         loadFriends();
+        loadGroups();
     }
 
     @Override
@@ -63,76 +75,57 @@ public class MainActivity extends AppCompatActivity {
         refreshHandler.removeCallbacks(refreshRequestsTask);
     }
 
+    private void logout() {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        prefs.edit().clear().apply();
+        Toast.makeText(this, "Déconnexion réussie", Toast.LENGTH_SHORT).show();
+        goToLogin();
+    }
+
+    private void goToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     private void loadFriends() {
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                // README suggère que Connect renvoie la liste,
-                // mais si on a besoin de rafraîchir, on peut supposer une commande de type getFriends
                 String message = "getFriends," + username;
                 String response = handler.sendAndReceive(message);
                 handler.close();
 
-                parseAndDisplayFriends(response);
+                parseAndDisplayItems(response, friendsList, true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    private void parseAndDisplayFriends(String response) {
-        List<String> friends = parseUserList(response);
-        runOnUiThread(() -> {
-            friendsList.removeAllViews();
-            for (String friend : friends) {
-                addFriendItem(friend);
-            }
-        });
-    }
-
-    private void loadFriendRequestsCount() {
-        if (username == null || username.isEmpty()) {
-            return;
-        }
+    private void loadGroups() {
         new Thread(() -> {
             try {
                 DataHandler handler = new DataHandler();
-                // Utiliser la commande Update du README
-                String response = handler.sendAndReceive("Update," + username);
+                String message = "getGroups," + username;
+                String response = handler.sendAndReceive(message);
                 handler.close();
 
-                // Parser la réponse Code,Type,Message
-                // Exemple: 200,UPDATE,DATA;MSG=...;FRIEND_REQUEST=...
-                int count = parseUpdateResponse(response);
-                runOnUiThread(() -> updateRequestsBadge(count));
+                parseAndDisplayItems(response, groupsList, false);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    private int parseUpdateResponse(String response) {
-        if (response == null || !response.startsWith("200,UPDATE,DATA")) {
-            return 0;
-        }
-
-        int count = 0;
-        try {
-            // Extraire la partie DATA
-            String dataPart = response.substring(response.indexOf("DATA;") + 5);
-            String[] segments = dataPart.split(";");
-            for (String segment : segments) {
-                if (segment.startsWith("FRIEND_REQUEST=")) {
-                    String list = segment.substring("FRIEND_REQUEST=".length());
-                    if (!list.isEmpty()) {
-                        count = list.split(",").length;
-                    }
-                }
+    private void parseAndDisplayItems(String response, LinearLayout listLayout, boolean isFriend) {
+        List<String> items = parseUserList(response);
+        runOnUiThread(() -> {
+            listLayout.removeAllViews();
+            for (String item : items) {
+                addItemView(item, listLayout, isFriend);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return count;
+        });
     }
 
     private List<String> parseUserList(String response) {
@@ -150,16 +143,7 @@ public class MainActivity extends AppCompatActivity {
         return users;
     }
 
-    private void updateRequestsBadge(int count) {
-        if (count > 0) {
-            requestsBadge.setText(String.valueOf(count));
-            requestsBadge.setVisibility(TextView.VISIBLE);
-        } else {
-            requestsBadge.setVisibility(TextView.GONE);
-        }
-    }
-
-    private void addFriendItem(String friendName) {
+    private void addItemView(String name, LinearLayout listLayout, boolean isFriend) {
         LinearLayout item = new LinearLayout(this);
         item.setOrientation(LinearLayout.HORIZONTAL);
         item.setPadding(16, 16, 16, 16);
@@ -169,30 +153,73 @@ public class MainActivity extends AppCompatActivity {
         ));
         item.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
 
-        Button avatar = new Button(this);
-        avatar.setText("👤");
-        avatar.setLayoutParams(new LinearLayout.LayoutParams(60, 60));
-        avatar.setEnabled(false);
+        TextView icon = new TextView(this);
+        icon.setText(isFriend ? "👤" : "👥");
+        icon.setLayoutParams(new LinearLayout.LayoutParams(60, 60));
 
         Button nameBtn = new Button(this);
-        nameBtn.setText(friendName);
+        nameBtn.setText(name);
         nameBtn.setLayoutParams(new LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1
         ));
-        nameBtn.setOnClickListener(v -> openChat(friendName));
+        nameBtn.setOnClickListener(v -> {
+            if (isFriend) openChat(name);
+            else openGroupChat(name);
+        });
 
-        ImageButton menuBtn = new ImageButton(this);
-        menuBtn.setImageResource(android.R.drawable.ic_menu_more);
-        menuBtn.setLayoutParams(new LinearLayout.LayoutParams(60, 60));
-        menuBtn.setOnClickListener(v -> showMenu(friendName));
-
-        item.addView(avatar);
+        item.addView(icon);
         item.addView(nameBtn);
-        item.addView(menuBtn);
+        listLayout.addView(item);
+    }
 
-        friendsList.addView(item);
+    private void loadFriendRequestsCount() {
+        if (username == null || username.isEmpty()) {
+            return;
+        }
+        new Thread(() -> {
+            try {
+                DataHandler handler = new DataHandler();
+                String response = handler.sendAndReceive("Update," + username);
+                handler.close();
+                int count = parseUpdateResponse(response);
+                runOnUiThread(() -> updateRequestsBadge(count));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private int parseUpdateResponse(String response) {
+        if (response == null || !response.startsWith("200,UPDATE,DATA")) {
+            return 0;
+        }
+        int count = 0;
+        try {
+            String dataPart = response.substring(response.indexOf("DATA;") + 5);
+            String[] segments = dataPart.split(";");
+            for (String segment : segments) {
+                if (segment.startsWith("FRIEND_REQUEST=")) {
+                    String list = segment.substring("FRIEND_REQUEST=".length());
+                    if (!list.isEmpty()) {
+                        count = list.split(",").length;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+    private void updateRequestsBadge(int count) {
+        if (count > 0) {
+            requestsBadge.setText(String.valueOf(count));
+            requestsBadge.setVisibility(TextView.VISIBLE);
+        } else {
+            requestsBadge.setVisibility(TextView.GONE);
+        }
     }
 
     private void addFriend() {
@@ -203,15 +230,19 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, FriendRequestsActivity.class));
     }
 
+    private void openSettings() {
+        startActivity(new Intent(this, SettingsActivity.class));
+    }
+
     private void openCreateGroup() {
         startActivity(new Intent(this, CreateGroupActivity.class));
     }
 
-    private void openChat(String friendName) {
-        Toast.makeText(this, "Chat avec " + friendName, Toast.LENGTH_SHORT).show();
+    private void openChat(String name) {
+        Toast.makeText(this, "Chat avec " + name, Toast.LENGTH_SHORT).show();
     }
 
-    private void showMenu(String friendName) {
-        Toast.makeText(this, "Menu de " + friendName, Toast.LENGTH_SHORT).show();
+    private void openGroupChat(String name) {
+        Toast.makeText(this, "Groupe: " + name, Toast.LENGTH_SHORT).show();
     }
 }

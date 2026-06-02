@@ -16,6 +16,7 @@ import java.util.List;
 
 public class FriendRequestsActivity extends AppCompatActivity {
     private LinearLayout requestsList;
+    private TextView debugText;
     private String username;
 
     @Override
@@ -27,6 +28,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
         username = prefs.getString("username", "");
 
         requestsList = findViewById(R.id.requestsList);
+        debugText = findViewById(R.id.debugText);
         Button refreshRequestsBtn = findViewById(R.id.refreshRequestsBtn);
         refreshRequestsBtn.setOnClickListener(v -> loadRequests());
 
@@ -42,12 +44,22 @@ public class FriendRequestsActivity extends AppCompatActivity {
             try {
                 DataHandler handler = new DataHandler();
                 // Utiliser Update pour récupérer les demandes en attente selon le README
-                String response = handler.sendAndReceive("Update," + username);
+                String message = "Update," + username;
+                
+                runOnUiThread(() -> debugText.append("📤 Envoyé: " + message + "\n"));
+                
+                String response = handler.sendAndReceive(message);
                 handler.close();
+                
+                runOnUiThread(() -> debugText.append("📥 Reçu: " + response + "\n"));
+                
                 List<String> requests = parseRequestsFromUpdate(response);
                 runOnUiThread(() -> displayRequests(requests));
             } catch (IOException e) {
-                runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    debugText.append("❌ Erreur: " + e.getMessage() + "\n");
+                    Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
+                });
             }
         }).start();
     }
@@ -132,14 +144,23 @@ public class FriendRequestsActivity extends AppCompatActivity {
             try {
                 DataHandler handler = new DataHandler();
                 // F_Acc,Src_User,Dst_User,0or1
-                String response = handler.sendAndReceive("F_Acc," + username + "," + friendUsername + "," + status);
+                String message = "F_Acc," + username + "," + friendUsername + "," + status;
+                
+                runOnUiThread(() -> debugText.append("📤 Envoyé: " + message + "\n"));
+                
+                String response = handler.sendAndReceive(message);
                 handler.close();
+                
                 runOnUiThread(() -> {
+                    debugText.append("📥 Reçu: " + response + "\n");
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                     loadRequests();
                 });
             } catch (IOException e) {
-                runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    debugText.append("❌ Erreur: " + e.getMessage() + "\n");
+                    Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
+                });
             }
         }).start();
     }

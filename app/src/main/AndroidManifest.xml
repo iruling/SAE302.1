@@ -22,6 +22,10 @@
 
         <activity android:name=".MainActivity" />
         <activity android:name=".CreateActivity" />
-        
+        <activity android:name=".AddFriendActivity" />
+        <activity android:name=".FriendRequestsActivity" />
+        <activity android:name=".CreateGroupActivity" />
+        <activity android:name=".SettingsActivity" />
+
     </application>
 </manifest>

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="12dp">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:id="@+id/headerBar"
@@ -14,20 +13,30 @@
         android:padding="8dp">
 
         <ImageButton
-            android:id="@+id/addFriendBtn"
+            android:id="@+id/logoutBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_input_add"
-            android:background="?attr/selectableItemBackground" />
+            android:src="@android:drawable/ic_lock_power_off"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="Déconnexion" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <ImageButton
+            android:id="@+id/addFriendBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_input_add"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="Ajouter un ami" />
+
         <FrameLayout
             android:layout_width="48dp"
-            android:layout_height="48dp">
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp">
 
             <ImageButton
                 android:id="@+id/friendRequestsBtn"
@@ -35,7 +44,8 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:background="?attr/selectableItemBackground"
-                android:src="@android:drawable/ic_dialog_email" />
+                android:src="@android:drawable/ic_dialog_email"
+                android:contentDescription="Demandes d'amis" />
 
             <TextView
                 android:id="@+id/requestsBadge"
@@ -53,28 +63,75 @@
     </LinearLayout>
 
     <ScrollView
-        android:id="@+id/friendsScroll"
+        android:id="@+id/contentScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/createGroupBtn"
+        android:layout_above="@+id/bottomBar"
         android:layout_below="@id/headerBar">
 
         <LinearLayout
-            android:id="@+id/friendsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp" />
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mes Amis"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/friendsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mes Groupes"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/groupsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
     </ScrollView>
 
-    <ImageButton
-        android:id="@+id/createGroupBtn"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+    <RelativeLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:background="@android:drawable/btn_default"
-        android:contentDescription="Créer un groupe"
-        android:src="@android:drawable/ic_input_add" />
+        android:padding="16dp">
+
+        <ImageButton
+            android:id="@+id/settingsBtn"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignParentStart="true"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="Paramètres"
+            android:src="@android:drawable/ic_menu_preferences" />
+
+        <ImageButton
+            android:id="@+id/createGroupBtn"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_alignParentEnd="true"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="Créer un groupe"
+            android:src="@android:drawable/ic_menu_add" />
+
+    </RelativeLayout>
+
 </RelativeLayout>
