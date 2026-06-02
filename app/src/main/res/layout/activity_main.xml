@@ -2,36 +2,61 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <EditText
-        android:id="@+id/messageEditText"
+    android:orientation="vertical">
+    
+    <!-- Header avec icones -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Entrez votre message"
-        android:inputType="text" />
-
-    <Button
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Envoyer" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Historique des messages:" />
-
+        android:layout_height="60dp"
+        android:background="#D4A574"
+        android:orientation="horizontal"
+        android:padding="8dp">
+        
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_dialog_info"
+            android:background="?attr/selectableItemBackground" />
+        
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+        
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:background="?attr/selectableItemBackground" />
+    </LinearLayout>
+    
+    <!-- Liste des amis -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:id="@+id/logTextView"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        
+        <LinearLayout
+            android:id="@+id/friendsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="14sp" />
+            android:orientation="vertical"
+            android:padding="8dp" />
     </ScrollView>
+    
+    <!-- Bouton ajouter ami -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#D4A574"
+        android:gravity="center">
+        
+        <ImageButton
+            android:id="@+id/addFriendBtn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@android:drawable/ic_input_add"
+            android:background="@android:drawable/btn_dialog"
+            android:scaleType="centerInside" />
+    </LinearLayout>
 </LinearLayout>
