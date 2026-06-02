@@ -52,19 +52,44 @@ public class LoginActivity extends AppCompatActivity {
                         debugText.append("📥 Reçu: " + response + "\n");
 
                         // Vérifier si la réponse est 200,CONNECT,OK
-                        if (response.startsWith("200,CONNECT,OK") || response.startsWith("200,OK")) {
-                            // Extraire le token (format: 200,CONNECT,OK;token...)
+                        if (response.startsWith("200,CONNECT,OK")) {
                             String token = "";
-                            if (response.contains(";")) {
-                                String afterOk = response.substring(response.indexOf("OK;") + 3);
-                                token = afterOk.split(";")[0];
+                            String friendsList = "";
+                            String groupsList = "";
+
+                            try {
+                                // Format: 200,CONNECT,OK,Token;FRIENDS=...;GROUPS=...;
+                                int firstSemicolon = response.indexOf(";");
+                                String header = (firstSemicolon != -1) ? response.substring(0, firstSemicolon) : response;
+                                
+                                // Extraction du token dans le header (après le 3ème virgule)
+                                String[] headerParts = header.split(",");
+                                if (headerParts.length >= 4) {
+                                    token = headerParts[3];
+                                }
+
+                                if (firstSemicolon != -1) {
+                                    String dataPart = response.substring(firstSemicolon + 1);
+                                    String[] blocks = dataPart.split(";");
+                                    for (String block : blocks) {
+                                        if (block.startsWith("FRIENDS=")) {
+                                            friendsList = block.substring("FRIENDS=".length());
+                                        } else if (block.startsWith("GROUPS=")) {
+                                            groupsList = block.substring("GROUPS=".length());
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
 
-                            // Sauvegarder le token et l'username
+                            // Sauvegarder les informations
                             SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("token", token);
                             editor.putString("username", user);
+                            editor.putString("initial_friends", friendsList);
+                            editor.putString("initial_groups", groupsList);
                             editor.apply();
 
                             Toast.makeText(LoginActivity.this, "Connexion réussie!", Toast.LENGTH_SHORT).show();
@@ -72,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                             // Aller à MainActivity
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
-                            finish(); // Fermer LoginActivity
+                            finish();
                         } else {
                             Toast.makeText(LoginActivity.this, response, Toast.LENGTH_SHORT).show();
                         }

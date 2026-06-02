@@ -59,8 +59,21 @@ public class MainActivity extends AppCompatActivity {
         settingsBtn.setOnClickListener(v -> openSettings());
         createGroupBtn.setOnClickListener(v -> openCreateGroup());
 
-        loadFriends();
-        loadGroups();
+        // Charger d'abord les données du cache de connexion si elles existent
+        String initialFriends = prefs.getString("initial_friends", "");
+        String initialGroups = prefs.getString("initial_groups", "");
+
+        if (!initialFriends.isEmpty()) {
+            parseAndDisplayItems(initialFriends, friendsList, true);
+        } else {
+            loadFriends();
+        }
+
+        if (!initialGroups.isEmpty()) {
+            parseAndDisplayItems(initialGroups, groupsList, false);
+        } else {
+            loadGroups();
+        }
     }
 
     @Override
@@ -192,20 +205,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int parseUpdateResponse(String response) {
-        if (response == null || !response.startsWith("200,UPDATE,DATA")) {
+        if (response == null || !response.contains("DATA;")) {
             return 0;
         }
         int count = 0;
         try {
-            String dataPart = response.substring(response.indexOf("DATA;") + 5);
+            // Extraire tout ce qui est après DATA;
+            int dataIndex = response.indexOf("DATA;");
+            String dataPart = response.substring(dataIndex + 5);
+            
             String[] segments = dataPart.split(";");
             for (String segment : segments) {
                 if (segment.startsWith("FRIEND_REQUEST=")) {
                     String list = segment.substring("FRIEND_REQUEST=".length());
                     if (!list.isEmpty()) {
-                        count = list.split(",").length;
+                        String[] items = list.split(",");
+                        for (String item : items) {
+                            if (!item.trim().isEmpty()) {
+                                count++;
+                            }
+                        }
                     }
                 }
+                // Ici on pourra ajouter d'autres traitements pour MSG=, GROUP_MSG=, etc.
             }
         } catch (Exception e) {
             e.printStackTrace();

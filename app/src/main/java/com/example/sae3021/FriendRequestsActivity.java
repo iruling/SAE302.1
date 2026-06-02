@@ -81,22 +81,25 @@ public class FriendRequestsActivity extends AppCompatActivity {
 
     private List<String> parseRequestsFromUpdate(String response) {
         List<String> requests = new ArrayList<>();
-        if (response == null || !response.contains("FRIEND_REQUEST=")) {
+        if (response == null || !response.contains("DATA;")) {
             return requests;
         }
 
         try {
-            // Extraire la partie FRIEND_REQUEST=...
-            int start = response.indexOf("FRIEND_REQUEST=") + "FRIEND_REQUEST=".length();
-            int end = response.indexOf(";", start);
-            if (end == -1) end = response.length();
-
-            String list = response.substring(start, end);
-            if (!list.isEmpty()) {
-                String[] users = list.split(",");
-                for (String u : users) {
-                    if (!u.trim().isEmpty()) {
-                        requests.add(u.trim());
+            int dataIndex = response.indexOf("DATA;");
+            String dataPart = response.substring(dataIndex + 5);
+            
+            String[] segments = dataPart.split(";");
+            for (String segment : segments) {
+                if (segment.startsWith("FRIEND_REQUEST=")) {
+                    String list = segment.substring("FRIEND_REQUEST=".length());
+                    if (!list.isEmpty()) {
+                        String[] users = list.split(",");
+                        for (String u : users) {
+                            if (!u.trim().isEmpty()) {
+                                requests.add(u.trim());
+                            }
+                        }
                     }
                 }
             }
