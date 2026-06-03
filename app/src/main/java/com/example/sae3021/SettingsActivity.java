@@ -47,8 +47,10 @@ public class SettingsActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         if (isFinishing()) return;
                         if (response.startsWith("200")) {
-                            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Compte supprimé avec succès", Toast.LENGTH_SHORT).show();
+                            // Nettoyage complet
                             prefs.edit().clear().apply();
+
                             Intent intent = new Intent(this, LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);

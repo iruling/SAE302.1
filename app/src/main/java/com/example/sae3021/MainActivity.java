@@ -226,12 +226,60 @@ public class MainActivity extends AppCompatActivity {
                     if (!friendName.isEmpty()) {
                         addFriendToSession(friendName);
                     }
+                } else if (segment.startsWith("MSG=")) {
+                    String messagesPart = segment.substring("MSG=".length());
+                    if (!messagesPart.isEmpty()) {
+                        saveReceivedMessages(messagesPart);
+                    }
+                } else if (segment.startsWith("GROUPS=")) { // Parfois renvoyé lors d'un ajout ou Update
+                    String groupsPart = segment.substring("GROUPS=".length());
+                    if (!groupsPart.isEmpty()) {
+                        updateGroupsInSession(groupsPart);
+                    }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return count;
+    }
+
+    private void saveReceivedMessages(String messagesPart) {
+        // Format: src:dst:content,src:dst:content
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String history = prefs.getString("chat_history", "");
+        
+        if (history.isEmpty()) {
+            history = messagesPart;
+        } else {
+            history += "," + messagesPart;
+        }
+        
+        prefs.edit().putString("chat_history", history).apply();
+        
+        runOnUiThread(() -> {
+            Toast.makeText(this, "Nouveaux messages reçus !", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void updateGroupsInSession(String newList) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String existing = prefs.getString("initial_groups", "");
+        
+        java.util.Set<String> allGroups = new java.util.HashSet<>();
+        if (!existing.isEmpty()) {
+            for (String g : existing.split(",")) allGroups.add(g.trim());
+        }
+        for (String g : newList.split(",")) allGroups.add(g.trim());
+        
+        StringBuilder sb = new StringBuilder();
+        for (String g : allGroups) {
+            if (!g.isEmpty()) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(g);
+            }
+        }
+        prefs.edit().putString("initial_groups", sb.toString()).apply();
     }
 
     private void addFriendToSession(String friendName) {
