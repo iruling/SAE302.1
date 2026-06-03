@@ -33,8 +33,13 @@ public class LoginActivity extends AppCompatActivity {
         if (loginBtn == null || signupBtn == null) return;
 
         loginBtn.setOnClickListener(v -> {
-            String user = username.getText().toString();
-            String pass = password.getText().toString();
+            String user = username.getText().toString().trim();
+            String pass = password.getText().toString().trim();
+
+            if (user.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             new Thread(() -> {
                 try {

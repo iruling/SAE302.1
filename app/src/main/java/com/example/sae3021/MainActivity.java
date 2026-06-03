@@ -125,7 +125,9 @@ public class MainActivity extends AppCompatActivity {
         String[] values = response.split(",");
         for (String value : values) {
             String user = value.trim();
-            if (!user.isEmpty() && !user.matches("\\d+") && !"OK".equalsIgnoreCase(user) && !"200".equals(user)) {
+            // On ne filtre plus les chiffres, car un pseudo peut en contenir (ex: tom1)
+            // On filtre uniquement le code 200 et OK
+            if (!user.isEmpty() && !"OK".equalsIgnoreCase(user) && !"200".equals(user)) {
                 users.add(user);
             }
         }
@@ -185,6 +187,11 @@ public class MainActivity extends AppCompatActivity {
                         // Rafraîchir l'affichage des amis/groupes au cas où un Update a apporté des modifs
                         loadDataFromSession();
                     }
+                });
+            } catch (java.net.SocketTimeoutException e) {
+                // Timeout silencieux pour l'utilisateur, mais on rafraîchit l'UI depuis le cache
+                runOnUiThread(() -> {
+                    if (!isFinishing()) loadDataFromSession();
                 });
             } catch (IOException e) {
                 e.printStackTrace();

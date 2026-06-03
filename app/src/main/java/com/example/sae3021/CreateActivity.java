@@ -24,9 +24,14 @@ public class CreateActivity extends AppCompatActivity {
         debugText = findViewById(R.id.debugText);
 
         registerBtn.setOnClickListener(v -> {
-            String user = username.getText().toString();
-            String pass = password.getText().toString();
-            String confirmPass = confirmPassword.getText().toString();
+            String user = username.getText().toString().trim();
+            String pass = password.getText().toString().trim();
+            String confirmPass = confirmPassword.getText().toString().trim();
+
+            if (user.isEmpty() || pass.isEmpty() || confirmPass.isEmpty()) {
+                Toast.makeText(this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             if (!pass.equals(confirmPass)) {
                 Toast.makeText(CreateActivity.this, "Les mots de passe ne correspondent pas", Toast.LENGTH_SHORT).show();
