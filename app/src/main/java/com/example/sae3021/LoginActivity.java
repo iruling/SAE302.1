@@ -32,6 +32,8 @@ public class LoginActivity extends AppCompatActivity {
 
         if (loginBtn == null || signupBtn == null) return;
 
+
+
         loginBtn.setOnClickListener(v -> {
             String user = username.getText().toString().trim();
             String pass = password.getText().toString().trim();
@@ -40,6 +42,13 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            Intent intent2 = new Intent(LoginActivity.this, ChatActivity.class);
+
+            intent2.putExtra("user", username.getText().toString());
+            intent2.putExtra("password", password.getText().toString());
+
+            startActivity(intent2);
 
             new Thread(() -> {
                 try {
@@ -81,10 +90,11 @@ public class LoginActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
 
-                            // Sauvegarder les informations
+                            // Sauvegarde des informations
                             SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("username", user);
+                            editor.putString("password", pass); // Sauvegarde du mot de passe
                             editor.putString("initial_friends", friendsList);
                             editor.putString("initial_groups", groupsList);
                             editor.apply();
