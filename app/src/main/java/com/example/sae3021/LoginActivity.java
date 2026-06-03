@@ -17,13 +17,20 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        try {
+            setContentView(R.layout.activity_login);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
 
         EditText username = findViewById(R.id.username);
         EditText password = findViewById(R.id.password);
         Button loginBtn = findViewById(R.id.loginBtn);
         Button signupBtn = findViewById(R.id.signupBtn);
         debugText = findViewById(R.id.debugText);
+
+        if (loginBtn == null || signupBtn == null) return;
 
         loginBtn.setOnClickListener(v -> {
             String user = username.getText().toString();
