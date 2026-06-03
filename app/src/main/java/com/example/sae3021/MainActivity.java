@@ -171,10 +171,16 @@ public class MainActivity extends AppCompatActivity {
                 DataHandler handler = new DataHandler();
                 String response = handler.sendAndReceive("Update," + username);
                 handler.close();
-                int count = parseUpdateResponse(response);
+                
+                // parseUpdateResponse met à jour SharedPreferences
+                parseUpdateResponse(response);
+                
+                // On récupère le nombre total de demandes en attente (stockées + nouvelles)
+                int totalCount = getStoredRequestsCount();
+                
                 runOnUiThread(() -> {
                     if (!isFinishing()) {
-                        updateRequestsBadge(count);
+                        updateRequestsBadge(totalCount);
                     }
                 });
             } catch (IOException e) {
@@ -183,13 +189,19 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private int getStoredRequestsCount() {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String saved = prefs.getString("pending_requests", "");
+        if (saved.isEmpty()) return 0;
+        return saved.split(",").length;
+    }
+
     private int parseUpdateResponse(String response) {
         if (response == null || !response.contains("DATA;")) {
             return 0;
         }
         int count = 0;
         try {
-            // Extraire tout ce qui est après DATA;
             int dataIndex = response.indexOf("DATA;");
             String dataPart = response.substring(dataIndex + 5);
             
@@ -198,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 if (segment.startsWith("FRIEND_REQUEST=")) {
                     String list = segment.substring("FRIEND_REQUEST=".length());
                     if (!list.isEmpty()) {
+                        savePendingRequests(list);
                         String[] items = list.split(",");
                         for (String item : items) {
                             if (!item.trim().isEmpty()) {
@@ -206,12 +219,34 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                // Ici on pourra ajouter d'autres traitements pour MSG=, GROUP_MSG=, etc.
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return count;
+    }
+
+    private void savePendingRequests(String newList) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String existing = prefs.getString("pending_requests", "");
+        
+        // Fusionner sans doublons
+        String[] newUsers = newList.split(",");
+        java.util.Set<String> allRequests = new java.util.HashSet<>();
+        
+        if (!existing.isEmpty()) {
+            for (String u : existing.split(",")) allRequests.add(u.trim());
+        }
+        for (String u : newUsers) allRequests.add(u.trim());
+        
+        StringBuilder sb = new StringBuilder();
+        for (String u : allRequests) {
+            if (!u.isEmpty()) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(u);
+            }
+        }
+        prefs.edit().putString("pending_requests", sb.toString()).apply();
     }
 
     private void updateRequestsBadge(int count) {

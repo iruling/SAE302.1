@@ -40,11 +40,21 @@ public class FriendRequestsActivity extends AppCompatActivity {
             Toast.makeText(this, "Session invalide", Toast.LENGTH_SHORT).show();
             return;
         }
+        
+        // Charger d'abord les demandes sauvegardées par MainActivity
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String savedRequests = prefs.getString("pending_requests", "");
+        List<String> requests = new ArrayList<>();
+        if (!savedRequests.isEmpty()) {
+            for (String u : savedRequests.split(",")) {
+                if (!u.trim().isEmpty()) requests.add(u.trim());
+            }
+        }
+
         new Thread(() -> {
             DataHandler handler = null;
             try {
                 handler = new DataHandler();
-                // Utiliser Update pour récupérer les demandes en attente selon le README
                 String message = "Update," + username;
                 
                 runOnUiThread(() -> debugText.append("📤 Envoyé: " + message + "\n"));
@@ -54,30 +64,39 @@ public class FriendRequestsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (isFinishing()) return;
                     debugText.append("📥 Reçu: " + response + "\n");
-                    
-                    // Analyse du code de retour selon le README
-                    String[] parts = response.split(",");
-                    if (parts.length > 0) {
-                        String code = parts[0];
-                        if (response.contains("NO_DATA")) {
-                            debugText.append("ℹ️ Aucune donnée disponible\n");
-                        } else if (!code.equals("200")) {
-                            debugText.append("⚠️ Code d'erreur reçu: " + code + "\n");
-                        }
-                    }
+                    // ... (reste du log)
                 });
                 
-                List<String> requests = parseRequestsFromUpdate(response);
+                List<String> newRequests = parseRequestsFromUpdate(response);
+                
+                // Fusionner avec les anciennes sans doublons
+                for (String nr : newRequests) {
+                    if (!requests.contains(nr)) requests.add(nr);
+                }
+                
+                // Mettre à jour les SharedPreferences avec la liste complète fusionnée
+                updateStoredRequests(requests);
+
                 runOnUiThread(() -> displayRequests(requests));
             } catch (IOException e) {
+                // En cas d'erreur réseau, on affiche quand même les demandes locales
                 runOnUiThread(() -> {
-                    debugText.append("❌ Erreur: " + e.getMessage() + "\n");
-                    Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
+                    displayRequests(requests);
+                    debugText.append("❌ Erreur réseau, affichage des données locales\n");
                 });
             } finally {
                 if (handler != null) handler.close();
             }
         }).start();
+    }
+
+    private void updateStoredRequests(List<String> requests) {
+        StringBuilder sb = new StringBuilder();
+        for (String r : requests) {
+            if (sb.length() > 0) sb.append(",");
+            sb.append(r);
+        }
+        getSharedPreferences("session", MODE_PRIVATE).edit().putString("pending_requests", sb.toString()).apply();
     }
 
     private List<String> parseRequestsFromUpdate(String response) {
@@ -174,10 +193,8 @@ public class FriendRequestsActivity extends AppCompatActivity {
                     if (isFinishing()) return;
                     debugText.append("📥 Reçu: " + response + "\n");
                     
-                    // Vérification sommaire du code de retour
-                    String[] parts = response.split(",");
-                    if (parts.length > 0 && !parts[0].equals("200")) {
-                        debugText.append("⚠️ Erreur lors du traitement (Code " + parts[0] + ")\n");
+                    if (response.startsWith("200")) {
+                        removeFromStoredRequests(friendUsername);
                     }
                     
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
@@ -192,5 +209,19 @@ public class FriendRequestsActivity extends AppCompatActivity {
                 if (handler != null) handler.close();
             }
         }).start();
+    }
+
+    private void removeFromStoredRequests(String userToRemove) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String saved = prefs.getString("pending_requests", "");
+        if (saved.isEmpty()) return;
+
+        List<String> remaining = new ArrayList<>();
+        for (String u : saved.split(",")) {
+            if (!u.trim().equals(userToRemove)) {
+                remaining.add(u.trim());
+            }
+        }
+        updateStoredRequests(remaining);
     }
 }
