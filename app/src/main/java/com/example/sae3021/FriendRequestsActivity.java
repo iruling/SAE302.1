@@ -195,20 +195,36 @@ public class FriendRequestsActivity extends AppCompatActivity {
                     
                     if (response.startsWith("200")) {
                         removeFromStoredRequests(friendUsername);
+                        if (status == 1) {
+                            addFriendToSession(friendUsername);
+                        }
                     }
                     
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                     loadRequests();
                 });
             } catch (IOException e) {
-                runOnUiThread(() -> {
-                    debugText.append("❌ Erreur: " + e.getMessage() + "\n");
-                    Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show();
-                });
+                // ... (reste du catch)
             } finally {
-                if (handler != null) handler.close();
+                // ... (reste du finally)
             }
         }).start();
+    }
+
+    private void addFriendToSession(String friendName) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String friends = prefs.getString("initial_friends", "");
+        
+        if (friends.isEmpty()) {
+            friends = friendName;
+        } else {
+            // Vérifier les doublons
+            String[] parts = friends.split(",");
+            boolean exists = false;
+            for (String p : parts) if (p.trim().equals(friendName)) { exists = true; break; }
+            if (!exists) friends += "," + friendName;
+        }
+        prefs.edit().putString("initial_friends", friends).apply();
     }
 
     private void removeFromStoredRequests(String userToRemove) {

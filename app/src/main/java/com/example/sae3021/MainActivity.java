@@ -182,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (!isFinishing()) {
                         updateRequestsBadge(totalCount);
+                        // Rafraîchir l'affichage des amis/groupes au cas où un Update a apporté des modifs
+                        loadDataFromSession();
                     }
                 });
             } catch (IOException e) {
@@ -219,12 +221,32 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
+                } else if (segment.startsWith("FRIEND_ACCEPTED=")) {
+                    String friendName = segment.substring("FRIEND_ACCEPTED=".length());
+                    if (!friendName.isEmpty()) {
+                        addFriendToSession(friendName);
+                    }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return count;
+    }
+
+    private void addFriendToSession(String friendName) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String friends = prefs.getString("initial_friends", "");
+        
+        if (friends.isEmpty()) {
+            friends = friendName;
+        } else {
+            String[] parts = friends.split(",");
+            boolean exists = false;
+            for (String p : parts) if (p.trim().equals(friendName)) { exists = true; break; }
+            if (!exists) friends += "," + friendName;
+        }
+        prefs.edit().putString("initial_friends", friends).apply();
     }
 
     private void savePendingRequests(String newList) {
