@@ -49,6 +49,9 @@ public class CreateGroupActivity extends AppCompatActivity {
                         if (isFinishing()) return;
                         Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                         if (response.startsWith("201")) {
+                            // Sauvegarder localement le groupe pour qu'il apparaisse dans MainActivity
+                            saveGroupLocally(groupName);
+
                             // Redirection vers l'étape 2 : ajout de membres
                             Intent intent = new Intent(this, ManageGroupActivity.class);
                             intent.putExtra("groupName", groupName);
@@ -63,5 +66,21 @@ public class CreateGroupActivity extends AppCompatActivity {
                 }
             }).start();
         });
+    }
+
+    private void saveGroupLocally(String groupName) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String existing = prefs.getString("initial_groups", "");
+        
+        if (existing.isEmpty()) {
+            existing = groupName;
+        } else {
+            // Vérifier les doublons
+            String[] parts = existing.split(",");
+            boolean exists = false;
+            for (String p : parts) if (p.trim().equals(groupName)) { exists = true; break; }
+            if (!exists) existing += "," + groupName;
+        }
+        prefs.edit().putString("initial_groups", existing).apply();
     }
 }

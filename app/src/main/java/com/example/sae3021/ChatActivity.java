@@ -31,10 +31,53 @@ public class ChatActivity extends AppCompatActivity {
     private final Runnable refreshChatTask = new Runnable() {
         @Override
         public void run() {
+            checkForUpdates();
             loadLocalHistory();
-            refreshHandler.postDelayed(this, 5000); // Rafraîchir toutes les 5 secondes
+            refreshHandler.postDelayed(this, 3000); // Rafraîchir toutes les 3 secondes
         }
     };
+
+    private void checkForUpdates() {
+        new Thread(() -> {
+            try {
+                DataHandler handler = new DataHandler();
+                String response = handler.sendAndReceive("Update," + username);
+                handler.close();
+                
+                if (response != null && response.contains("DATA;")) {
+                    parseUpdateResponse(response);
+                }
+            } catch (IOException ignored) {}
+        }).start();
+    }
+
+    private void parseUpdateResponse(String response) {
+        try {
+            int dataIndex = response.indexOf("DATA;");
+            String dataPart = response.substring(dataIndex + 5);
+            String[] segments = dataPart.split(";");
+            for (String segment : segments) {
+                String s = segment.trim();
+                String upper = s.toUpperCase();
+                if (upper.startsWith("MSG=")) {
+                    String msgPart = s.substring("MSG=".length());
+                    saveReceivedMessages(msgPart);
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void saveReceivedMessages(String messagesPart) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String history = prefs.getString("chat_history", "");
+        
+        if (history.isEmpty()) history = messagesPart;
+        else history += "," + messagesPart;
+        
+        prefs.edit().putString("chat_history", history).apply();
+        
+        runOnUiThread(this::loadLocalHistory);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +117,7 @@ public class ChatActivity extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-                    String Message = "Send_Msg," + username + "," + password + "," + contactName + "," + finalMsg;
+                    String Message = "Send_Msg," + username + "," + contactName + "," + finalMsg;
 
                     String response = handler.sendAndReceive(Message);
                     handler.close();

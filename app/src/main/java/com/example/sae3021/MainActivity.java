@@ -217,8 +217,11 @@ public class MainActivity extends AppCompatActivity {
             
             String[] segments = dataPart.split(";");
             for (String segment : segments) {
-                if (segment.startsWith("FRIEND_REQUEST=")) {
-                    String list = segment.substring("FRIEND_REQUEST=".length());
+                String s = segment.trim();
+                String upper = s.toUpperCase();
+                
+                if (upper.startsWith("FRIEND_REQUEST=")) {
+                    String list = s.substring("FRIEND_REQUEST=".length());
                     if (!list.isEmpty()) {
                         savePendingRequests(list);
                         String[] items = list.split(",");
@@ -228,23 +231,23 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-                } else if (segment.startsWith("FRIEND_ACCEPTED=")) {
-                    String friendName = segment.substring("FRIEND_ACCEPTED=".length());
+                } else if (upper.startsWith("FRIEND_ACCEPTED=")) {
+                    String friendName = s.substring("FRIEND_ACCEPTED=".length());
                     if (!friendName.isEmpty()) {
                         addFriendToSession(friendName);
                     }
-                } else if (segment.startsWith("MSG=")) {
-                    String messagesPart = segment.substring("MSG=".length());
+                } else if (upper.startsWith("MSG=")) {
+                    String messagesPart = s.substring("MSG=".length());
                     if (!messagesPart.isEmpty()) {
                         saveReceivedMessages(messagesPart);
                     }
-                } else if (segment.startsWith("GROUPS=")) { // Parfois renvoyé lors d'un ajout ou Update
-                    String groupsPart = segment.substring("GROUPS=".length());
+                } else if (upper.startsWith("GROUPS=") || upper.startsWith("GROUP_JOIN=")) { 
+                    String groupsPart = s.substring(s.indexOf("=") + 1);
                     if (!groupsPart.isEmpty()) {
                         updateGroupsInSession(groupsPart);
                     }
-                } else if (segment.startsWith("GROUP_MSG=")) {
-                    String groupMessagesPart = segment.substring("GROUP_MSG=".length());
+                } else if (upper.startsWith("GROUP_MSG=")) {
+                    String groupMessagesPart = s.substring("GROUP_MSG=".length());
                     if (!groupMessagesPart.isEmpty()) {
                         saveReceivedGroupMessages(groupMessagesPart);
                     }

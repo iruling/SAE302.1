@@ -10,7 +10,7 @@ public class DataHandler {
     private final DatagramSocket socket;
     private final InetAddress serverAddr;
     private final int serverPort;
-    private static final int BUFFER_SIZE = 1024;
+    private static final int BUFFER_SIZE = 4096;
     private static final String SERVER_IP = "192.168.27.66"; // IP fixe du serveur
     private static final int SERVER_PORT = 6010;
 

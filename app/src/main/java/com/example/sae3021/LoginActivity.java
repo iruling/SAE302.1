@@ -43,13 +43,6 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            Intent intent2 = new Intent(LoginActivity.this, ChatActivity.class);
-
-            intent2.putExtra("user", username.getText().toString());
-            intent2.putExtra("password", password.getText().toString());
-
-            startActivity(intent2);
-
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
@@ -71,19 +64,22 @@ public class LoginActivity extends AppCompatActivity {
                         if (response.startsWith("200,CONNECT,OK")) {
                             String friendsList = "";
                             String groupsList = "";
+                            String initialMessages = "";
 
                             try {
-                                // Format attendu: 200,CONNECT,OK,Token;FRIENDS=Pierre,Paul;GROUPS=Sae,Dev;
-                                // On ignore le Token selon les instructions
+                                // Format attendu: 200,CONNECT,OK,Token;FRIENDS=Pierre,Paul;GROUPS=Sae,Dev;MSG=...
                                 String[] mainParts = response.split(";");
 
-                                // Les blocs suivants contiennent FRIENDS=... et GROUPS=...
                                 for (int i = 1; i < mainParts.length; i++) {
-                                    String block = mainParts[i];
-                                    if (block.startsWith("FRIENDS=")) {
+                                    String block = mainParts[i].trim();
+                                    String upperBlock = block.toUpperCase();
+                                    
+                                    if (upperBlock.startsWith("FRIENDS=")) {
                                         friendsList = block.substring("FRIENDS=".length());
-                                    } else if (block.startsWith("GROUPS=")) {
+                                    } else if (upperBlock.startsWith("GROUPS=")) {
                                         groupsList = block.substring("GROUPS=".length());
+                                    } else if (upperBlock.startsWith("MSG=")) {
+                                        initialMessages = block.substring("MSG=".length());
                                     }
                                 }
                             } catch (Exception e) {
@@ -94,9 +90,15 @@ public class LoginActivity extends AppCompatActivity {
                             SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("username", user);
-                            editor.putString("password", pass); // Sauvegarde du mot de passe
+                            editor.putString("password", pass);
                             editor.putString("initial_friends", friendsList);
                             editor.putString("initial_groups", groupsList);
+                            
+                            // Sauvegarder les messages de connexion s'il y en a
+                            if (!initialMessages.isEmpty()) {
+                                editor.putString("chat_history", initialMessages);
+                            }
+
                             editor.apply();
 
                             Toast.makeText(LoginActivity.this, "Connexion réussie!", Toast.LENGTH_SHORT).show();
