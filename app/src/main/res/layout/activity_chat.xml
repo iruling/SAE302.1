@@ -17,10 +17,10 @@
 
     <ScrollView
         android:id="@+id/messageScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginBottom="8dp">
+        android:layout_width="375dp"
+        android:layout_height="483dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/messageList"
@@ -48,5 +48,11 @@
             android:layout_height="wrap_content"
             android:text="Envoyer" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/DebugText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
 
 </LinearLayout>
