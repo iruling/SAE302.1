@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         ImageButton settingsBtn = findViewById(R.id.settingsBtn);
         ImageButton uploadBtn = findViewById(R.id.uploadBtn);
         ImageButton createGroupBtn = findViewById(R.id.createGroupBtn);
+        Button sendToAllBtn = findViewById(R.id.sendToAllBtn);
 
         logoutBtn.setOnClickListener(v -> logout());
         addFriendBtn.setOnClickListener(v -> addFriend());
@@ -67,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
         settingsBtn.setOnClickListener(v -> openSettings());
         uploadBtn.setOnClickListener(v -> performUpload());
         createGroupBtn.setOnClickListener(v -> openCreateGroup());
+        if (sendToAllBtn != null) {
+            sendToAllBtn.setOnClickListener(v -> showSendToAllDialog());
+        }
 
         // Charger les données de session (remplies lors du Connect)
         loadDataFromSession();
@@ -251,12 +255,34 @@ public class MainActivity extends AppCompatActivity {
                     if (!groupMessagesPart.isEmpty()) {
                         saveReceivedGroupMessages(groupMessagesPart);
                     }
+                } else if (upper.startsWith("MSG_G=")) {
+                    String rawGMsg = s.substring("MSG_G=".length());
+                    if (!rawGMsg.isEmpty()) {
+                        saveReceivedGroupMessages(normalizeConnectGroupMessages(rawGMsg));
+                    }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return count;
+    }
+
+    private String normalizeConnectGroupMessages(String rawGMsg) {
+        if (rawGMsg == null || rawGMsg.isEmpty()) return "";
+        String[] messages = rawGMsg.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String m : messages) {
+            String[] parts = m.split(":", 3);
+            if (parts.length >= 3) {
+                String sender = parts[0];
+                String group = parts[1];
+                String content = parts[2];
+                if (sb.length() > 0) sb.append(",");
+                sb.append(group).append(":").append(sender).append(":").append(content);
+            }
+        }
+        return sb.toString();
     }
 
     private void saveReceivedMessages(String messagesPart) {
@@ -278,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveReceivedGroupMessages(String messagesPart) {
-        // Format: src:group:content,src:group:content
+        // Format attendu: group:sender:content
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String history = prefs.getString("group_chat_history", "");
         
@@ -393,6 +419,84 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ManageGroupActivity.class);
         intent.putExtra("groupName", name);
         startActivity(intent);
+    }
+
+    private void showSendToAllDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Message à tous les amis");
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setHint("Votre message...");
+        builder.setView(input);
+
+        builder.setPositiveButton("Envoyer", (dialog, which) -> {
+            String message = input.getText().toString().trim();
+            if (!message.isEmpty()) {
+                sendMsgToAll(message);
+            }
+        });
+        builder.setNegativeButton("Annuler", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void sendMsgToAll(String rawMsg) {
+        new Thread(() -> {
+            try {
+                String encodedMsg;
+                try {
+                    encodedMsg = java.net.URLEncoder.encode(rawMsg, "UTF-8");
+                } catch (Exception e) {
+                    encodedMsg = rawMsg;
+                }
+
+                DataHandler handler = new DataHandler();
+                // Send_Msg,Src_User,@everyone,Msg
+                String cmd = "Send_Msg," + username + ",@everyone," + encodedMsg;
+                String response = handler.sendAndReceive(cmd);
+                handler.close();
+
+                if (response.startsWith("200")) {
+                    saveBroadCastLocally(rawMsg);
+                    runOnUiThread(() -> Toast.makeText(this, "Message envoyé à tous !", Toast.LENGTH_SHORT).show());
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, "Erreur: " + response, Toast.LENGTH_SHORT).show());
+                }
+            } catch (IOException e) {
+                runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
+    }
+
+    private void saveBroadCastLocally(String msg) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String friendsStr = prefs.getString("initial_friends", "");
+        if (friendsStr.isEmpty()) return;
+
+        String encoded;
+        try {
+            encoded = java.net.URLEncoder.encode(msg, "UTF-8");
+        } catch (Exception e) {
+            encoded = msg;
+        }
+
+        String history = prefs.getString("chat_history", "");
+        String[] friends = friendsStr.split(",");
+        
+        StringBuilder newEntries = new StringBuilder();
+        for (String friend : friends) {
+            String f = friend.trim();
+            if (!f.isEmpty()) {
+                if (newEntries.length() > 0) newEntries.append(",");
+                newEntries.append(username).append(":").append(f).append(":").append(encoded);
+            }
+        }
+
+        if (newEntries.length() > 0) {
+            if (history.isEmpty()) history = newEntries.toString();
+            else history += "," + newEntries.toString();
+            prefs.edit().putString("chat_history", history).apply();
+        }
     }
 
     private void openGroupChat(String name) {

@@ -14,6 +14,28 @@ import java.io.IOException;
 public class LoginActivity extends AppCompatActivity {
     private TextView debugText;
 
+    private String normalizeConnectGroupMessages(String rawGMsg) {
+        if (rawGMsg == null || rawGMsg.isEmpty()) return "";
+        
+        // Format serveur (Connect): Sender:Group:Content,Sender:Group:Content
+        // Format Interne: Group:Sender:Content
+        String[] messages = rawGMsg.split(",");
+        StringBuilder sb = new StringBuilder();
+        
+        for (String m : messages) {
+            String[] parts = m.split(":", 3);
+            if (parts.length >= 3) {
+                String sender = parts[0];
+                String group = parts[1];
+                String content = parts[2];
+                
+                if (sb.length() > 0) sb.append(",");
+                sb.append(group).append(":").append(sender).append(":").append(content);
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,9 +87,10 @@ public class LoginActivity extends AppCompatActivity {
                             String friendsList = "";
                             String groupsList = "";
                             String initialMessages = "";
+                            String initialGroupMessages = "";
 
                             try {
-                                // Format attendu: 200,CONNECT,OK,Token;FRIENDS=Pierre,Paul;GROUPS=Sae,Dev;MSG=...
+                                // Format attendu: 200,CONNECT,OK,Token;FRIENDS=Pierre,Paul;GROUPS=Sae,Dev;MSG=...;MSG_G=...
                                 String[] mainParts = response.split(";");
 
                                 for (int i = 1; i < mainParts.length; i++) {
@@ -80,6 +103,9 @@ public class LoginActivity extends AppCompatActivity {
                                         groupsList = block.substring("GROUPS=".length());
                                     } else if (upperBlock.startsWith("MSG=")) {
                                         initialMessages = block.substring("MSG=".length());
+                                    } else if (upperBlock.startsWith("MSG_G=")) {
+                                        String rawGMsg = block.substring("MSG_G=".length());
+                                        initialGroupMessages = normalizeConnectGroupMessages(rawGMsg);
                                     }
                                 }
                             } catch (Exception e) {
@@ -97,6 +123,9 @@ public class LoginActivity extends AppCompatActivity {
                             // Sauvegarder les messages de connexion s'il y en a
                             if (!initialMessages.isEmpty()) {
                                 editor.putString("chat_history", initialMessages);
+                            }
+                            if (!initialGroupMessages.isEmpty()) {
+                                editor.putString("group_chat_history", initialGroupMessages);
                             }
 
                             editor.apply();

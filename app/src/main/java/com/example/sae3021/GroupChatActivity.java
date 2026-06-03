@@ -70,6 +70,7 @@ public class GroupChatActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String history = prefs.getString("group_chat_history", "");
         
+        // Format attendu du serveur: Groupe:Emetteur:Contenu
         if (history.isEmpty()) history = messagesPart;
         else history += "," + messagesPart;
         
@@ -157,15 +158,15 @@ public class GroupChatActivity extends AppCompatActivity {
         String history = prefs.getString("group_chat_history", "");
         if (history.isEmpty()) return;
 
-        // Format: src:group:content,src:group:content
+        // Format attendu: group:sender:content
         String[] messages = history.split(",");
         for (String m : messages) {
             if (displayedMessages.contains(m)) continue;
 
             String[] parts = m.split(":", 3);
             if (parts.length >= 3) {
-                String src = parts[0].trim();
-                String targetGroup = parts[1].trim();
+                String targetGroup = parts[0].trim();
+                String src = parts[1].trim();
                 String content = parts[2];
                 
                 // Décoder le contenu pour l'affichage
@@ -195,7 +196,8 @@ public class GroupChatActivity extends AppCompatActivity {
             encoded = msg;
         }
         
-        String newMsgEntry = username + ":" + groupName + ":" + encoded;
+        // Format: group:sender:content
+        String newMsgEntry = groupName + ":" + username + ":" + encoded;
         displayedMessages.add(newMsgEntry);
         
         if (history.isEmpty()) history = newMsgEntry;
