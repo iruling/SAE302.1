@@ -112,9 +112,11 @@ public class LoginActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
 
-                            // Sauvegarde des informations
+                            // Sauvegarde des informations (on vide tout avant pour repartir sur une base saine)
                             SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
                             SharedPreferences.Editor editor = prefs.edit();
+                            editor.clear(); 
+                            
                             editor.putString("username", user);
                             editor.putString("password", pass);
                             editor.putString("initial_friends", friendsList);

@@ -32,7 +32,7 @@ public class GroupChatActivity extends AppCompatActivity {
         public void run() {
             checkForUpdates();
             loadLocalHistory();
-            refreshHandler.postDelayed(this, 3000); // Rafraîchir toutes les 3 secondes
+            refreshHandler.postDelayed(this, 5000); // Rafraîchir toutes les 5 secondes
         }
     };
 

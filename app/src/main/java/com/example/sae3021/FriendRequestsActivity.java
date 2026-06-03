@@ -111,14 +111,29 @@ public class FriendRequestsActivity extends AppCompatActivity {
             
             String[] segments = dataPart.split(";");
             for (String segment : segments) {
-                if (segment.startsWith("FRIEND_REQUEST=")) {
-                    String list = segment.substring("FRIEND_REQUEST=".length());
+                String s = segment.trim();
+                String upper = s.toUpperCase();
+                if (upper.startsWith("FRIEND_REQUEST=")) {
+                    String list = s.substring("FRIEND_REQUEST=".length());
                     if (!list.isEmpty()) {
                         String[] users = list.split(",");
                         for (String u : users) {
                             if (!u.trim().isEmpty()) {
                                 requests.add(u.trim());
                             }
+                        }
+                    }
+                } else if (upper.startsWith("FRIEND_RESPONSE=")) {
+                    String responsePart = s.substring("FRIEND_RESPONSE=".length());
+                    if (responsePart.contains(":")) {
+                        String[] resParts = responsePart.split(":");
+                        String friendName = resParts[0];
+                        String status = resParts[1];
+                        if ("ACCEPTED".equalsIgnoreCase(status)) {
+                            addFriendToSession(friendName);
+                            removeFromStoredRequests(friendName);
+                        } else if ("REFUSED".equalsIgnoreCase(status)) {
+                            removeFromStoredRequests(friendName);
                         }
                     }
                 }

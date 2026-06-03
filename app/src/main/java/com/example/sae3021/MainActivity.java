@@ -26,9 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable refreshDataTask = new Runnable() {
         @Override
         public void run() {
-            // Envoi automatique de la commande Update (Upload) toutes les 30 secondes
+            // Envoi automatique de la commande Update (Upload) toutes les 20 secondes
             loadFriendRequestsCount();
-            refreshHandler.postDelayed(this, 30000); 
+            refreshHandler.postDelayed(this, 20000);
         }
     };
 
@@ -100,9 +100,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void logout() {
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        // Nettoyage complet : on ne garde rien en cache
         prefs.edit().clear().apply();
         Toast.makeText(this, "Déconnexion réussie", Toast.LENGTH_SHORT).show();
         goToLogin();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Si on veut être sûr que rien ne reste quand on quitte l'app
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        prefs.edit()
+             .remove("chat_history")
+             .remove("group_chat_history")
+             .remove("pending_requests")
+             .apply();
     }
 
     private void goToLogin() {
@@ -240,12 +253,25 @@ public class MainActivity extends AppCompatActivity {
                     if (!friendName.isEmpty()) {
                         addFriendToSession(friendName);
                     }
+                } else if (upper.startsWith("FRIEND_RESPONSE=")) {
+                    // Format: FRIEND_RESPONSE=pseudo:ACCEPTED ou pseudo:REFUSED
+                    String responsePart = s.substring("FRIEND_RESPONSE=".length());
+                    if (responsePart.contains(":")) {
+                        String[] resParts = responsePart.split(":");
+                        String friendName = resParts[0];
+                        String status = resParts[1];
+                        if ("ACCEPTED".equalsIgnoreCase(status)) {
+                            addFriendToSession(friendName);
+                        }
+                        // Nettoyer des demandes en attente si nécessaire
+                        removeFromStoredRequests(friendName);
+                    }
                 } else if (upper.startsWith("MSG=")) {
                     String messagesPart = s.substring("MSG=".length());
                     if (!messagesPart.isEmpty()) {
                         saveReceivedMessages(messagesPart);
                     }
-                } else if (upper.startsWith("GROUPS=") || upper.startsWith("GROUP_JOIN=")) { 
+                } else if (upper.startsWith("GROUPS=") || upper.startsWith("GROUP_JOIN=") || upper.startsWith("GROUP=")) {
                     String groupsPart = s.substring(s.indexOf("=") + 1);
                     if (!groupsPart.isEmpty()) {
                         updateGroupsInSession(groupsPart);
@@ -349,6 +375,26 @@ public class MainActivity extends AppCompatActivity {
             if (!exists) friends += "," + friendName;
         }
         prefs.edit().putString("initial_friends", friends).apply();
+    }
+
+    private void removeFromStoredRequests(String userToRemove) {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String saved = prefs.getString("pending_requests", "");
+        if (saved.isEmpty()) return;
+
+        List<String> remaining = new ArrayList<>();
+        for (String u : saved.split(",")) {
+            if (!u.trim().equals(userToRemove)) {
+                remaining.add(u.trim());
+            }
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (String u : remaining) {
+            if (sb.length() > 0) sb.append(",");
+            sb.append(u);
+        }
+        prefs.edit().putString("pending_requests", sb.toString()).apply();
     }
 
     private void savePendingRequests(String newList) {
