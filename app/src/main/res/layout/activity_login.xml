@@ -41,19 +41,12 @@
             android:text="Sign Up" />
     </LinearLayout>
     
-    <Button
-        android:id="@+id/debugBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🐛 DEBUG: Aller à MainActivity"
-        android:textColor="#FF0000"
-        android:backgroundTint="#FFFF00" />
-
     <TextView
         android:id="@+id/debugText"
-        android:layout_width="369dp"
-        android:layout_height="382dp"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
         android:scrollbars="vertical"
         android:text="Debug Output:\n"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:layout_marginTop="16dp" />
 </LinearLayout>
