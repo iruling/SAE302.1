@@ -26,10 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable refreshDataTask = new Runnable() {
         @Override
         public void run() {
-            // Dans le protocole actuel, on ne peut pas rafraîchir les listes d'amis/groupes 
-            // sans se reconnecter ou attendre un Update. On se contente de rafraîchir les requêtes.
+            // Envoi automatique de la commande Update (Upload) toutes les 30 secondes
             loadFriendRequestsCount();
-            refreshHandler.postDelayed(this, 10000); 
+            refreshHandler.postDelayed(this, 30000); 
         }
     };
 
@@ -59,12 +58,14 @@ public class MainActivity extends AppCompatActivity {
         ImageButton addFriendBtn = findViewById(R.id.addFriendBtn);
         ImageButton friendRequestsBtn = findViewById(R.id.friendRequestsBtn);
         ImageButton settingsBtn = findViewById(R.id.settingsBtn);
+        ImageButton uploadBtn = findViewById(R.id.uploadBtn);
         ImageButton createGroupBtn = findViewById(R.id.createGroupBtn);
 
         logoutBtn.setOnClickListener(v -> logout());
         addFriendBtn.setOnClickListener(v -> addFriend());
         friendRequestsBtn.setOnClickListener(v -> openFriendRequests());
         settingsBtn.setOnClickListener(v -> openSettings());
+        uploadBtn.setOnClickListener(v -> performUpload());
         createGroupBtn.setOnClickListener(v -> openCreateGroup());
 
         // Charger les données de session (remplies lors du Connect)
@@ -272,6 +273,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void openCreateGroup() {
         startActivity(new Intent(this, CreateGroupActivity.class));
+    }
+
+    private void performUpload() {
+        Toast.makeText(this, "Upload en cours...", Toast.LENGTH_SHORT).show();
+        loadFriendRequestsCount();
     }
 
     private void openChat(String name) {

@@ -149,6 +149,15 @@
             android:src="@android:drawable/ic_menu_preferences" />
 
         <ImageButton
+            android:id="@+id/uploadBtn"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_centerInParent="true"
+            android:background="@android:drawable/btn_default"
+            android:contentDescription="Upload"
+            android:src="@android:drawable/stat_notify_sync" />
+
+        <ImageButton
             android:id="@+id/createGroupBtn"
             android:layout_width="56dp"
             android:layout_height="56dp"
