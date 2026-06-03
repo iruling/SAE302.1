@@ -11,7 +11,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 public class ChatActivity extends AppCompatActivity {
     private String contactName;
@@ -37,16 +39,57 @@ public class ChatActivity extends AppCompatActivity {
         messageList = findViewById(R.id.messageList);
         messageInput = findViewById(R.id.messageInput);
         Button sendBtn = findViewById(R.id.sendBtn);
+        String srcuser = getIntent().getStringExtra("user");
+        String srcpass = getIntent().getStringExtra("password");
 
         loadLocalHistory();
 
         sendBtn.setOnClickListener(v -> {
+
             String msg = messageInput.getText().toString().trim();
-            if (!msg.isEmpty()) {
-                // Pour l'instant on affiche juste un Toast (comportement initial)
-                Toast.makeText(this, "Envoi à " + contactName + " : " + msg, Toast.LENGTH_SHORT).show();
-                messageInput.setText("");
+
+            // ✅ Vérifier message vide
+            if (msg.isEmpty()) {
+                return;
             }
+
+            // ✅ Encoder pour éviter les virgules / caractères spéciaux
+            try {
+                msg = URLEncoder.encode(msg, "UTF-8");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String finalMsg = msg;
+            new Thread(() -> {
+                try {
+                    DataHandler handler = new DataHandler();
+
+                    String Message = "Send_Msg,"+ srcuser + "," + srcpass + "," + contactName + "," + finalMsg;
+
+                    runOnUiThread(() -> {
+                    });
+
+                    handler.sendMessage(Message);
+
+                    String response = handler.receiveMessage();
+
+                    runOnUiThread(() -> {
+
+                    });
+
+                    handler.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+
+                    runOnUiThread(() -> {
+                    });
+                }
+            }).start();
+
+            // ✅ Vider le champ après envoi
+            messageInput.setText("");
         });
     }
 

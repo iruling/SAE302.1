@@ -32,9 +32,18 @@ public class LoginActivity extends AppCompatActivity {
 
         if (loginBtn == null || signupBtn == null) return;
 
+
+
         loginBtn.setOnClickListener(v -> {
             String user = username.getText().toString();
             String pass = password.getText().toString();
+
+            Intent intent2 = new Intent(LoginActivity.this, ChatActivity.class);
+
+            intent2.putExtra("user", username.getText().toString());
+            intent2.putExtra("password", password.getText().toString());
+
+            startActivity(intent2);
 
             new Thread(() -> {
                 try {
