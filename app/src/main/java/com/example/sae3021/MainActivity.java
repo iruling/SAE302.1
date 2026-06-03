@@ -243,6 +243,11 @@ public class MainActivity extends AppCompatActivity {
                     if (!groupsPart.isEmpty()) {
                         updateGroupsInSession(groupsPart);
                     }
+                } else if (segment.startsWith("GROUP_MSG=")) {
+                    String groupMessagesPart = segment.substring("GROUP_MSG=".length());
+                    if (!groupMessagesPart.isEmpty()) {
+                        saveReceivedGroupMessages(groupMessagesPart);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -266,6 +271,24 @@ public class MainActivity extends AppCompatActivity {
         
         runOnUiThread(() -> {
             Toast.makeText(this, "Nouveaux messages reçus !", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void saveReceivedGroupMessages(String messagesPart) {
+        // Format: src:group:content,src:group:content
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String history = prefs.getString("group_chat_history", "");
+        
+        if (history.isEmpty()) {
+            history = messagesPart;
+        } else {
+            history += "," + messagesPart;
+        }
+        
+        prefs.edit().putString("group_chat_history", history).apply();
+        
+        runOnUiThread(() -> {
+            Toast.makeText(this, "Nouveaux messages de groupe !", Toast.LENGTH_SHORT).show();
         });
     }
 

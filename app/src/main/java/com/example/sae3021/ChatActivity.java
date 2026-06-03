@@ -2,6 +2,8 @@ package com.example.sae3021;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,15 +13,28 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ChatActivity extends AppCompatActivity {
     private String contactName;
     private String username;
     private LinearLayout messageList;
     private EditText messageInput;
+    private final Handler refreshHandler = new Handler(Looper.getMainLooper());
+    private final Set<String> displayedMessages = new HashSet<>();
+
+    private final Runnable refreshChatTask = new Runnable() {
+        @Override
+        public void run() {
+            loadLocalHistory();
+            refreshHandler.postDelayed(this, 5000); // Rafraîchir toutes les 5 secondes
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,52 +59,55 @@ public class ChatActivity extends AppCompatActivity {
         loadLocalHistory();
 
         sendBtn.setOnClickListener(v -> {
+            String rawMsg = messageInput.getText().toString().trim();
+            if (rawMsg.isEmpty()) return;
 
-            String msg = messageInput.getText().toString().trim();
-
-            // ✅ Vérifier message vide
-            if (msg.isEmpty()) {
-                return;
-            }
-
-            // ✅ Encoder pour éviter les virgules / caractères spéciaux
+            // ✅ Encoder pour éviter les virgules / caractères spéciaux dans le transport CSV
+            String encodedMsg;
             try {
-                msg = URLEncoder.encode(msg, "UTF-8");
+                encodedMsg = URLEncoder.encode(rawMsg, "UTF-8");
             } catch (Exception e) {
-                e.printStackTrace();
+                encodedMsg = rawMsg;
             }
 
-            String finalMsg = msg;
+            String finalMsg = encodedMsg;
             new Thread(() -> {
                 try {
                     DataHandler handler = new DataHandler();
-
                     String Message = "Send_Msg," + username + "," + password + "," + contactName + "," + finalMsg;
 
-                    runOnUiThread(() -> {
-                    });
-
-                    handler.sendMessage(Message);
-
-                    String response = handler.receiveMessage();
-
-                    runOnUiThread(() -> {
-
-                    });
-
+                    String response = handler.sendAndReceive(Message);
                     handler.close();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-
                     runOnUiThread(() -> {
+                        if (isFinishing()) return;
+                        if (response.startsWith("200")) {
+                            // Afficher immédiatement et sauvegarder
+                            addMessageToUI("Moi: " + rawMsg, Gravity.END);
+                            saveSentMessage(rawMsg);
+                            messageInput.setText("");
+                        } else {
+                            Toast.makeText(this, "Erreur envoi: " + response, Toast.LENGTH_SHORT).show();
+                        }
                     });
+
+                } catch (IOException e) {
+                    runOnUiThread(() -> Toast.makeText(this, "Erreur réseau", Toast.LENGTH_SHORT).show());
                 }
             }).start();
-
-            // ✅ Vider le champ après envoi
-            messageInput.setText("");
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshHandler.post(refreshChatTask);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        refreshHandler.removeCallbacks(refreshChatTask);
     }
 
     private void loadLocalHistory() {
@@ -100,16 +118,25 @@ public class ChatActivity extends AppCompatActivity {
         // Format: src:dst:content,src:dst:content
         String[] messages = history.split(",");
         for (String m : messages) {
+            if (displayedMessages.contains(m)) continue;
+
             String[] parts = m.split(":", 3);
             if (parts.length >= 3) {
                 String src = parts[0].trim();
                 String dst = parts[1].trim();
                 String content = parts[2];
+                
+                // Décoder le contenu pour l'affichage
+                try {
+                    content = URLDecoder.decode(content, "UTF-8");
+                } catch (Exception ignored) {}
 
                 if (src.equals(contactName) && dst.equals(username)) {
                     addMessageToUI(contactName + ": " + content, Gravity.START);
+                    displayedMessages.add(m);
                 } else if (src.equals(username) && dst.equals(contactName)) {
                     addMessageToUI("Moi: " + content, Gravity.END);
+                    displayedMessages.add(m);
                 }
             }
         }
@@ -118,10 +145,19 @@ public class ChatActivity extends AppCompatActivity {
     private void saveSentMessage(String msg) {
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         String history = prefs.getString("chat_history", "");
-        String newMsg = username + ":" + contactName + ":" + msg;
+        // On sauvegarde le message encodé pour rester cohérent avec le format de réception
+        String encoded;
+        try {
+            encoded = URLEncoder.encode(msg, "UTF-8");
+        } catch (Exception e) {
+            encoded = msg;
+        }
         
-        if (history.isEmpty()) history = newMsg;
-        else history += "," + newMsg;
+        String newMsgEntry = username + ":" + contactName + ":" + encoded;
+        displayedMessages.add(newMsgEntry); // Éviter de le re-charger via refreshChatTask
+        
+        if (history.isEmpty()) history = newMsgEntry;
+        else history += "," + newMsgEntry;
         
         prefs.edit().putString("chat_history", history).apply();
     }
