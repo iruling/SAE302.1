@@ -22,20 +22,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView requestsBadge;
     private String username;
     private final Handler refreshHandler = new Handler(Looper.getMainLooper());
-    private final Runnable refreshRequestsTask = new Runnable() {
-        @Override
-        public void run() {
-            loadFriendRequestsCount();
-            refreshHandler.postDelayed(this, 10000);
-        }
-    };
 
     private final Runnable refreshDataTask = new Runnable() {
         @Override
         public void run() {
-            loadFriends();
-            loadGroups();
-            refreshHandler.postDelayed(this, 30000); // Rafraîchir amis/groupes toutes les 30s
+            // Dans le protocole actuel, on ne peut pas rafraîchir les listes d'amis/groupes 
+            // sans se reconnecter ou attendre un Update. On se contente de rafraîchir les requêtes.
+            loadFriendRequestsCount();
+            refreshHandler.postDelayed(this, 10000); 
         }
     };
 
@@ -55,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
         friendsList = findViewById(R.id.friendsList);
         groupsList = findViewById(R.id.groupsList);
         requestsBadge = findViewById(R.id.requestsBadge);
+        TextView currentUserDisplay = findViewById(R.id.currentUserDisplay);
+
+        if (currentUserDisplay != null) {
+            currentUserDisplay.setText(username);
+        }
         
         ImageButton logoutBtn = findViewById(R.id.logoutBtn);
         ImageButton addFriendBtn = findViewById(R.id.addFriendBtn);
@@ -68,43 +67,29 @@ public class MainActivity extends AppCompatActivity {
         settingsBtn.setOnClickListener(v -> openSettings());
         createGroupBtn.setOnClickListener(v -> openCreateGroup());
 
-        // Charger d'abord les données du cache de connexion si elles existent
-        String initialFriends = prefs.getString("initial_friends", "");
-        String initialGroups = prefs.getString("initial_groups", "");
+        // Charger les données de session (remplies lors du Connect)
+        loadDataFromSession();
+    }
 
-        if (!initialFriends.isEmpty()) {
-            parseAndDisplayItems(initialFriends, friendsList, true);
-        } else {
-            loadFriends();
-        }
+    private void loadDataFromSession() {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        String savedFriends = prefs.getString("initial_friends", "");
+        String savedGroups = prefs.getString("initial_groups", "");
 
-        if (!initialGroups.isEmpty()) {
-            parseAndDisplayItems(initialGroups, groupsList, false);
-        } else {
-            loadGroups();
-        }
-
-        // Nettoyer le cache initial pour forcer les prochains rafraîchissements depuis le serveur
-        prefs.edit().remove("initial_friends").remove("initial_groups").apply();
+        parseAndDisplayItems(savedFriends, friendsList, true);
+        parseAndDisplayItems(savedGroups, groupsList, false);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        refreshHandler.post(refreshRequestsTask);
-        
-        // Rafraîchissement immédiat au retour sur l'activité
-        loadFriends();
-        loadGroups();
-        
-        // Planifier les suivants
-        refreshHandler.postDelayed(refreshDataTask, 30000);
+        refreshHandler.post(refreshDataTask);
+        loadDataFromSession();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        refreshHandler.removeCallbacks(refreshRequestsTask);
         refreshHandler.removeCallbacks(refreshDataTask);
     }
 
@@ -119,36 +104,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
         finish();
-    }
-
-    private void loadFriends() {
-        new Thread(() -> {
-            try {
-                DataHandler handler = new DataHandler();
-                String message = "getFriends," + username;
-                String response = handler.sendAndReceive(message);
-                handler.close();
-
-                parseAndDisplayItems(response, friendsList, true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    private void loadGroups() {
-        new Thread(() -> {
-            try {
-                DataHandler handler = new DataHandler();
-                String message = "getGroups," + username;
-                String response = handler.sendAndReceive(message);
-                handler.close();
-
-                parseAndDisplayItems(response, groupsList, false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     private void parseAndDisplayItems(String response, LinearLayout listLayout, boolean isFriend) {
@@ -217,7 +172,11 @@ public class MainActivity extends AppCompatActivity {
                 String response = handler.sendAndReceive("Update," + username);
                 handler.close();
                 int count = parseUpdateResponse(response);
-                runOnUiThread(() -> updateRequestsBadge(count));
+                runOnUiThread(() -> {
+                    if (!isFinishing()) {
+                        updateRequestsBadge(count);
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }

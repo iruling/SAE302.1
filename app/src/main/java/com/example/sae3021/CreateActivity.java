@@ -52,6 +52,7 @@ public class CreateActivity extends AppCompatActivity {
                     handler.close();
 
                     runOnUiThread(() -> {
+                        if (isFinishing()) return;
                         debugText.append("📥 Reçu: " + response + "\n");
                         Toast.makeText(CreateActivity.this, response, Toast.LENGTH_SHORT).show();
                         finish();

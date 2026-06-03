@@ -7,9 +7,9 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
 public class DataHandler {
-    private DatagramSocket socket;
-    private InetAddress serverAddr;
-    private int serverPort;
+    private final DatagramSocket socket;
+    private final InetAddress serverAddr;
+    private final int serverPort;
     private static final int BUFFER_SIZE = 1024;
     private static final String SERVER_IP = "192.168.27.66"; // IP fixe du serveur
     private static final int SERVER_PORT = 6010;
@@ -18,6 +18,7 @@ public class DataHandler {
         this.serverAddr = InetAddress.getByName(SERVER_IP);
         this.serverPort = SERVER_PORT;
         this.socket = new DatagramSocket();
+        this.socket.setSoTimeout(5000); // Timeout de 5 secondes
     }
 
     /**

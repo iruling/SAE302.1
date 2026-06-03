@@ -46,6 +46,7 @@ public class CreateGroupActivity extends AppCompatActivity {
                     String response = handler.sendAndReceive("G_add," + username + "," + groupName);
                     
                     runOnUiThread(() -> {
+                        if (isFinishing()) return;
                         Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                         if (response.startsWith("201")) {
                             // Redirection vers l'étape 2 : ajout de membres

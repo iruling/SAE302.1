@@ -45,6 +45,7 @@ public class SettingsActivity extends AppCompatActivity {
                     String response = handler.sendAndReceive(message);
                     
                     runOnUiThread(() -> {
+                        if (isFinishing()) return;
                         if (response.startsWith("200")) {
                             Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                             prefs.edit().clear().apply();
@@ -82,7 +83,10 @@ public class SettingsActivity extends AppCompatActivity {
                     
                     String response = handler.sendAndReceive(cmd);
                     
-                    runOnUiThread(() -> debugConsole.append("📥 REP: " + response + "\n"));
+                    runOnUiThread(() -> {
+                        if (isFinishing()) return;
+                        debugConsole.append("📥 REP: " + response + "\n");
+                    });
                 } catch (IOException e) {
                     runOnUiThread(() -> debugConsole.append("❌ ERR: " + e.getMessage() + "\n"));
                 } finally {

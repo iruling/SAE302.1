@@ -52,6 +52,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
                 String response = handler.sendAndReceive(message);
                 
                 runOnUiThread(() -> {
+                    if (isFinishing()) return;
                     debugText.append("📥 Reçu: " + response + "\n");
                     
                     // Analyse du code de retour selon le README
@@ -170,6 +171,7 @@ public class FriendRequestsActivity extends AppCompatActivity {
                 String response = handler.sendAndReceive(message);
                 
                 runOnUiThread(() -> {
+                    if (isFinishing()) return;
                     debugText.append("📥 Reçu: " + response + "\n");
                     
                     // Vérification sommaire du code de retour

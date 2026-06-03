@@ -3,14 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
-    
+    android:padding="16dp"
+    android:paddingTop="80dp"
+    android:gravity="center_vertical">
+
     <EditText
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username" />
-    
+        android:hint="Username"
+        android:layout_marginTop="32dp" />
+
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
@@ -45,12 +48,12 @@
         android:text="🐛 DEBUG: Aller à MainActivity"
         android:textColor="#FF0000"
         android:backgroundTint="#FFFF00" />
-    
+
     <TextView
         android:id="@+id/debugText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="369dp"
+        android:layout_height="382dp"
+        android:scrollbars="vertical"
         android:text="Debug Output:\n"
-        android:textSize="12sp"
-        android:scrollbars="vertical" />
+        android:textSize="12sp" />
 </LinearLayout>

@@ -70,6 +70,7 @@ public class ManageGroupActivity extends AppCompatActivity {
                 String response = handler.sendAndReceive(cmd);
                 
                 runOnUiThread(() -> {
+                    if (isFinishing()) return;
                     debugConsole.append("📥 REP: " + response + "\n");
                     Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
                     
