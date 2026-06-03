@@ -28,6 +28,7 @@ public class ChatActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
         username = prefs.getString("username", "");
+        String password = prefs.getString("password", ""); // Récupération du mot de passe
 
         contactName = getIntent().getStringExtra("contactName");
         
@@ -39,8 +40,6 @@ public class ChatActivity extends AppCompatActivity {
         messageList = findViewById(R.id.messageList);
         messageInput = findViewById(R.id.messageInput);
         Button sendBtn = findViewById(R.id.sendBtn);
-        String srcuser = getIntent().getStringExtra("user");
-        String srcpass = getIntent().getStringExtra("password");
 
         loadLocalHistory();
 
@@ -65,7 +64,7 @@ public class ChatActivity extends AppCompatActivity {
                 try {
                     DataHandler handler = new DataHandler();
 
-                    String Message = "Send_Msg,"+ srcuser + "," + srcpass + "," + contactName + "," + finalMsg;
+                    String Message = "Send_Msg," + username + "," + password + "," + contactName + "," + finalMsg;
 
                     runOnUiThread(() -> {
                     });
