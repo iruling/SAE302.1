@@ -255,11 +255,6 @@ public class MainActivity extends AppCompatActivity {
                     if (!groupMessagesPart.isEmpty()) {
                         saveReceivedGroupMessages(groupMessagesPart);
                     }
-                } else if (upper.startsWith("MSG_G=")) {
-                    String rawGMsg = s.substring("MSG_G=".length());
-                    if (!rawGMsg.isEmpty()) {
-                        saveReceivedGroupMessages(normalizeConnectGroupMessages(rawGMsg));
-                    }
                 }
             }
         } catch (Exception e) {

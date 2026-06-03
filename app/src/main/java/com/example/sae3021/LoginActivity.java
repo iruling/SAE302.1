@@ -17,7 +17,7 @@ public class LoginActivity extends AppCompatActivity {
     private String normalizeConnectGroupMessages(String rawGMsg) {
         if (rawGMsg == null || rawGMsg.isEmpty()) return "";
         
-        // Format serveur (Connect): Sender:Group:Content,Sender:Group:Content
+        // Format serveur (Connect): Sender:Group:Content
         // Format Interne: Group:Sender:Content
         String[] messages = rawGMsg.split(",");
         StringBuilder sb = new StringBuilder();
